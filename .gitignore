@@ -1,0 +1,5 @@
+# Project exclude paths
+/organization-server/target/
+/organizations-api/target/
+/organizations-common/target/
+/organizations-web/target/

@@ -1,0 +1,12 @@
+dubbo:
+  application:
+    name: edward-organizations-web #服务名（用于dubbo识别）
+  registry:
+    address: 192.168.68.31:2181 #zookeeper启动的ip地址+端口号
+    protocol: zookeeper
+server:
+  port: 8082
+
+# swagger开关
+swagger:
+  enabled: true
