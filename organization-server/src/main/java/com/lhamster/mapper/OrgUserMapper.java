@@ -13,4 +13,5 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  */
 public interface OrgUserMapper extends BaseMapper<OrgUser> {
 
+    OrgUser getByPhone(String phone);
 }

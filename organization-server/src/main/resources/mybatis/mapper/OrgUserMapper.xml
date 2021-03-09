@@ -2,4 +2,9 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lhamster.mapper.OrgUserMapper">
 
+    <select id="getByPhone" resultType="com.lhamster.entity.OrgUser">
+        select *
+        from `org_user`
+        where user_phone = #{phone}
+    </select>
 </mapper>

@@ -1,6 +1,6 @@
 package com.lhamster.response.exception;
 
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -10,8 +10,8 @@ import lombok.EqualsAndHashCode;
  * @date 2021/3/9
  */
 @EqualsAndHashCode(callSuper = true)
+@AllArgsConstructor
 @Data
-@Builder
 public class ServerException extends RuntimeException {
     private Boolean result;
     private String msg;

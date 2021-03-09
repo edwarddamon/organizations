@@ -4,6 +4,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 /**
  * @author Damon_Edward
  * @version 1.0
@@ -11,7 +13,7 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
-public class Response<T> {
+public class Response<T> implements Serializable {
     private Boolean result;
     private String msg;
     private Integer count; // 返回的总数据数目

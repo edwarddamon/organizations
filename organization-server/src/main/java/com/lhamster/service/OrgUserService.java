@@ -13,4 +13,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface OrgUserService extends IService<OrgUser> {
 
+    Boolean getByPhone(String phone);
 }

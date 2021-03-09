@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <settings>
+        <!--配置sql日志-->
+        <setting name="logImpl" value="STDOUT_LOGGING"/>
+        <!--开启驼峰命名【对注解版和配置版都有效】-->
+        <!--<setting name="mapUnderscoreToCamelCase" value="true"/>-->
+    </settings>
+    <!--配置分页-->
+    <!--<plugins>
+        <plugin interceptor="com.github.pagehelper.PageHelper"/>
+    </plugins>-->
+</configuration>
