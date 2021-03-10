@@ -1,8 +1,10 @@
 package com.lhamster.facadeImpl;
 
 import com.lhamster.entity.OrgUser;
-import com.lhamster.exception.util.SmsUtils;
+import com.lhamster.util.JwtTokenUtil;
+import com.lhamster.util.SmsUtils;
 import com.lhamster.facade.UserFacade;
+import com.lhamster.request.LoginRequest;
 import com.lhamster.request.MessageRequest;
 import com.lhamster.request.RegisterRequest;
 import com.lhamster.response.exception.ServerException;
@@ -11,7 +13,6 @@ import com.lhamster.service.OrgUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Service;
-import org.apache.ibatis.annotations.Result;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -19,6 +20,7 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Objects;
 
 /**
  * @author Damon_Edward
@@ -96,5 +98,18 @@ public class UserFacadeImpl implements UserFacade {
         } else {
             throw new ServerException(Boolean.FALSE, "缓存验证码或时间为空，请重新发送验证码");
         }
+    }
+
+    @Override
+    public Response login(LoginRequest loginRequest) {
+        OrgUser user = orgUserService.login(loginRequest);
+        // 登陆失败
+        if (Objects.isNull(user)) {
+            throw new ServerException(Boolean.FALSE, "用户名或密码错误");
+        }
+        // 登录成功
+        String jwt = JwtTokenUtil.createJWT(String.valueOf(user.getUserId()), user.getUserUsername(), null);
+        log.info("[JWT]：{}", jwt);
+        return new Response<String>(Boolean.TRUE, "登陆成功", jwt);
     }
 }

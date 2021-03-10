@@ -14,15 +14,15 @@ import java.io.Serializable;
 @Data
 @ApiModel(value = "注册入参")
 public class RegisterRequest implements Serializable {
-    @ApiModelProperty(value = "用户名", example = "edward")
+    @ApiModelProperty(value = "用户名", example = "edward", required = true)
     private String username;
 
-    @ApiModelProperty(value = "密码", example = "123456789")
+    @ApiModelProperty(value = "密码", example = "123456789", required = true)
     private String password;
 
-    @ApiModelProperty(value = "手机号", example = "13612345678")
+    @ApiModelProperty(value = "手机号", example = "13612345678", required = true)
     private String phone;
 
-    @ApiModelProperty(value = "验证码", example = "123456")
+    @ApiModelProperty(value = "验证码", example = "123456", required = true)
     private String code;
 }

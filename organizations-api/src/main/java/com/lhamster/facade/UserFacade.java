@@ -1,5 +1,6 @@
 package com.lhamster.facade;
 
+import com.lhamster.request.LoginRequest;
 import com.lhamster.request.MessageRequest;
 import com.lhamster.request.RegisterRequest;
 import com.lhamster.response.result.Response;
@@ -18,4 +19,7 @@ public interface UserFacade {
 
     /*用户注册*/
     Response register(RegisterRequest registerRequest);
+
+    /*用户登录*/
+    Response login(LoginRequest loginRequest);
 }

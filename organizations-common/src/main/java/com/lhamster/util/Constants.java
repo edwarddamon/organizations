@@ -1,4 +1,4 @@
-package com.lhamster.exception.util;
+package com.lhamster.util;
 
 /**
  * 腾讯云常量类

@@ -7,4 +7,10 @@
         from `org_user`
         where user_phone = #{phone}
     </select>
+    <select id="login" resultType="com.lhamster.entity.OrgUser">
+        select *
+        from `org_user`
+        where `user_phone` = #{phone}
+          and `user_password` = #{password}
+    </select>
 </mapper>

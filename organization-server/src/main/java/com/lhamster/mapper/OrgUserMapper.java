@@ -2,6 +2,7 @@ package com.lhamster.mapper;
 
 import com.lhamster.entity.OrgUser;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.lhamster.request.LoginRequest;
 
 /**
  * <p>
@@ -14,4 +15,6 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 public interface OrgUserMapper extends BaseMapper<OrgUser> {
 
     OrgUser getByPhone(String phone);
+
+    OrgUser login(LoginRequest loginRequest);
 }

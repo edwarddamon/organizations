@@ -14,9 +14,9 @@ import java.io.Serializable;
 @Data
 @ApiModel(value = "验证码请求")
 public class MessageRequest implements Serializable {
-    @ApiModelProperty(value = "手机号")
+    @ApiModelProperty(value = "手机号", required = true)
     private String phone;
 
-    @ApiModelProperty(value = "类型", example = "0:注册;1:修改密码")
+    @ApiModelProperty(value = "类型", example = "0:注册;1:修改密码", required = true)
     private Integer type;
 }

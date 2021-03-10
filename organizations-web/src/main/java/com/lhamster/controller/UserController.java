@@ -1,6 +1,8 @@
 package com.lhamster.controller;
 
+import cn.hutool.core.util.StrUtil;
 import com.lhamster.facade.UserFacade;
+import com.lhamster.request.LoginRequest;
 import com.lhamster.request.MessageRequest;
 import com.lhamster.request.RegisterRequest;
 import com.lhamster.response.exception.ServerException;
@@ -9,13 +11,12 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Date;
 import java.util.Objects;
 
 /**
@@ -26,6 +27,7 @@ import java.util.Objects;
 @Slf4j
 @RestController
 @Api(value = "用户")
+@RequestMapping(value = "/organizations/web/user")
 public class UserController {
     @Reference
     private UserFacade userFacade;
@@ -69,4 +71,17 @@ public class UserController {
         /*注册*/
         return userFacade.register(registerRequest);
     }
+
+    @PostMapping("/login")
+    @ApiOperation(value = "登录", produces = "application/json")
+    public Response login(@RequestBody LoginRequest loginRequest) {
+        if (StrUtil.hasBlank(loginRequest.getPhone()) || StrUtil.hasBlank(loginRequest.getPassword())) {
+            throw new ServerException(Boolean.FALSE, "入参不能为空");
+        }
+        // 登录
+        return userFacade.login(loginRequest);
+    }
+
+    /*@PostMapping("/reset")
+    @ApiOperation(value = "重置密码", produces = "application/json")*/
 }

@@ -37,6 +37,7 @@
         <qcloud.version>5.6.8</qcloud.version>
         <json.version>1.2.70</json.version>
         <swagger.version>2.4.0</swagger.version>
+        <hutool.version>5.5.9</hutool.version>
     </properties>
 
     <dependencyManagement>
@@ -175,6 +176,12 @@
                 <artifactId>springfox-swagger-ui</artifactId>
                 <version>${swagger.version}</version>
             </dependency>
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-all</artifactId>
+                <version>${hutool.version}</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 

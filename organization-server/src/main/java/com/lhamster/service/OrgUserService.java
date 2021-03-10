@@ -2,6 +2,7 @@ package com.lhamster.service;
 
 import com.lhamster.entity.OrgUser;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.lhamster.request.LoginRequest;
 
 /**
  * <p>
@@ -14,4 +15,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
 public interface OrgUserService extends IService<OrgUser> {
 
     Boolean getByPhone(String phone);
+
+    OrgUser login(LoginRequest loginRequest);
 }

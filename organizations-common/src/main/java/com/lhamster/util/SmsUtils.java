@@ -1,4 +1,4 @@
-package com.lhamster.exception.util;
+package com.lhamster.util;
 
 import com.lhamster.response.exception.ServerException;
 import com.tencentcloudapi.common.Credential;

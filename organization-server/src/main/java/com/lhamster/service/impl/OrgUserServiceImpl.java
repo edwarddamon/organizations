@@ -2,6 +2,7 @@ package com.lhamster.service.impl;
 
 import com.lhamster.entity.OrgUser;
 import com.lhamster.mapper.OrgUserMapper;
+import com.lhamster.request.LoginRequest;
 import com.lhamster.service.OrgUserService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -26,5 +27,10 @@ public class OrgUserServiceImpl extends ServiceImpl<OrgUserMapper, OrgUser> impl
     public Boolean getByPhone(String phone) {
         OrgUser orgUser = orgUserMapper.getByPhone(phone);
         return Objects.nonNull(orgUser);
+    }
+
+    @Override
+    public OrgUser login(LoginRequest loginRequest) {
+        return orgUserMapper.login(loginRequest);
     }
 }
