@@ -27,7 +27,7 @@ import java.time.LocalDateTime;
 @Api(value = "用户模块通知")
 @RequiredArgsConstructor
 @Transactional(rollbackFor = Exception.class)
-public class UserAop {
+public class UserMessageAop {
     private final OrgMessageService orgMessageService;
     private final OrgUserMapper orgUserMapper;
 
