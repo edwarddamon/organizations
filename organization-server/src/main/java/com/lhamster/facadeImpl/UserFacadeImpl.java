@@ -1,6 +1,8 @@
 package com.lhamster.facadeImpl;
 
+import cn.hutool.core.util.StrUtil;
 import com.lhamster.entity.OrgUser;
+import com.lhamster.request.ChangePwdRequest;
 import com.lhamster.util.JwtTokenUtil;
 import com.lhamster.util.SmsUtils;
 import com.lhamster.facade.UserFacade;
@@ -15,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Service;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
@@ -41,6 +44,7 @@ public class UserFacadeImpl implements UserFacade {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Response sendMessage(MessageRequest messageRequest) {
         String randomCode = SmsUtils.generateRandomCode();// 六位随机数验证码
         long currTime = new Date().getTime();// 当前时间的时间戳
@@ -60,6 +64,7 @@ public class UserFacadeImpl implements UserFacade {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Response register(RegisterRequest registerRequest) {
         // 去redis缓存检查code是否存在，对比是否过期
         if (!redisTemplate.opsForHash().hasKey(registerRequest.getPhone(), "code")
@@ -67,8 +72,8 @@ public class UserFacadeImpl implements UserFacade {
             throw new ServerException(Boolean.FALSE, "缓存中不存在验证码或时间，请重新发送验证码");
         }
         String redisCode = (String) redisTemplate.opsForHash().get(registerRequest.getPhone(), "code");
-        long redisTime = (long) redisTemplate.opsForHash().get(registerRequest.getPhone(), "time");
-        if (!StringUtils.isEmpty(redisCode) && !StringUtils.isEmpty(redisTime)) { // 读取到了存入redis的该手机号的信息
+        Long redisTime = (Long) redisTemplate.opsForHash().get(registerRequest.getPhone(), "time");
+        if (!StringUtils.isEmpty(redisCode) && Objects.nonNull(redisTime)) { // 读取到了存入redis的该手机号的信息
             // 判断该信息是否过期
             long nowTime = new Date().getTime();
             if (nowTime - redisTime < 120 * 1000) { // 没过期：对比redisCode和前端传递的code是否一致
@@ -101,6 +106,7 @@ public class UserFacadeImpl implements UserFacade {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Response login(LoginRequest loginRequest) {
         OrgUser user = orgUserService.login(loginRequest);
         // 登陆失败
@@ -111,5 +117,56 @@ public class UserFacadeImpl implements UserFacade {
         String jwt = JwtTokenUtil.createJWT(String.valueOf(user.getUserId()), user.getUserUsername(), null);
         log.info("[JWT]：{}", jwt);
         return new Response<String>(Boolean.TRUE, "登陆成功", jwt);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Response resetPassword(RegisterRequest registerRequest) {
+        // 去redis缓存检查code是否存在，对比是否过期
+        if (!redisTemplate.opsForHash().hasKey(registerRequest.getPhone(), "code")
+                || !redisTemplate.opsForHash().hasKey(registerRequest.getPhone(), "time")) {
+            throw new ServerException(Boolean.FALSE, "缓存中不存在验证码或时间，请重新发送验证码");
+        }
+        String redisCode = (String) redisTemplate.opsForHash().get(registerRequest.getPhone(), "code");
+        Long redisTime = (Long) redisTemplate.opsForHash().get(registerRequest.getPhone(), "time");
+        if (!StringUtils.isEmpty(redisCode) && Objects.nonNull(redisTime)) { // 读取到了存入redis的该手机号的信息
+            // 判断该信息是否过期
+            long nowTime = new Date().getTime();
+            if (nowTime - redisTime < 120 * 1000) { // 没过期：对比redisCode和前端传递的code是否一致
+                if (redisCode.equals(registerRequest.getCode())) {// 一致
+                    // 将新密码存入数据库
+                    try {
+                        orgUserService.resetPhone(registerRequest);
+                        // 删除redis中的相关信息
+                        redisTemplate.delete(registerRequest.getPhone());
+                        return new Response(Boolean.TRUE, "重置密码成功");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        throw new ServerException(Boolean.FALSE, "重置密码失败");
+                    }
+                } else { // 不一致
+                    throw new ServerException(Boolean.FALSE, "验证码错误");
+                }
+            } else { // 过期
+                redisTemplate.delete(registerRequest.getPhone());
+                throw new ServerException(Boolean.FALSE, "验证码已过期");
+            }
+        } else {
+            throw new ServerException(Boolean.FALSE, "缓存中验证码或时间为空，请重新发送验证码");
+        }
+    }
+
+    @Override
+    public Response changePassword(ChangePwdRequest changePwdRequest, Long userId) {
+        OrgUser orgUser = orgUserService.getById(userId);
+        // 旧密码正确
+        if (orgUser.getUserPassword().equals(changePwdRequest.getOldPwd())) {
+            // 修改密码
+            orgUser.setUserPassword(changePwdRequest.getNewPwd());
+            orgUserService.updateById(orgUser);
+            return new Response(Boolean.TRUE, "密码修改成功");
+        } else {
+            throw new ServerException(Boolean.FALSE, "旧密码错误");
+        }
     }
 }

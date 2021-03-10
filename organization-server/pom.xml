@@ -115,6 +115,7 @@
             <groupId>org.mybatis.generator</groupId>
             <artifactId>mybatis-generator-core</artifactId>
         </dependency>
+
         <!--pagehelper-->
         <dependency>
             <groupId>com.github.pagehelper</groupId>

@@ -2,21 +2,21 @@ package com.lhamster.controller;
 
 import cn.hutool.core.util.StrUtil;
 import com.lhamster.facade.UserFacade;
+import com.lhamster.request.ChangePwdRequest;
 import com.lhamster.request.LoginRequest;
 import com.lhamster.request.MessageRequest;
 import com.lhamster.request.RegisterRequest;
 import com.lhamster.response.exception.ServerException;
 import com.lhamster.response.result.Response;
+import com.lhamster.util.JwtTokenUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.sql.Struct;
 import java.util.Objects;
 
 /**
@@ -82,6 +82,27 @@ public class UserController {
         return userFacade.login(loginRequest);
     }
 
-    /*@PostMapping("/reset")
-    @ApiOperation(value = "重置密码", produces = "application/json")*/
+    @PostMapping("/reset")
+    @ApiOperation(value = "重置密码", produces = "application/json")
+    public Response reset(@RequestBody RegisterRequest registerRequest) {
+        if (StringUtils.isEmpty(registerRequest.getPassword())
+                || StringUtils.isEmpty(registerRequest.getPhone())
+                || StringUtils.isEmpty(registerRequest.getCode())) {
+            throw new ServerException(Boolean.FALSE, "入参不能为空");
+        }
+        log.info("入参为：{}", registerRequest);
+        /*重置密码*/
+        return userFacade.resetPassword(registerRequest);
+    }
+
+    @PostMapping("/changePassword")
+    @ApiOperation(value = "修改密码", produces = "application/json")
+    public Response changePassword(@RequestBody ChangePwdRequest changePwdRequest, @RequestHeader(JwtTokenUtil.AUTH_HEADER_KEY) String token) {
+        if (StrUtil.hasBlank(changePwdRequest.getNewPwd()) || StrUtil.hasBlank(changePwdRequest.getOldPwd())) {
+            throw new ServerException(Boolean.FALSE, "入参不能为空");
+        }
+        log.info("[入参为]：{}", changePwdRequest);
+        // 修改密码
+        return userFacade.changePassword(changePwdRequest, JwtTokenUtil.getUserId(token));
+    }
 }

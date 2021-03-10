@@ -113,6 +113,13 @@ public class JwtTokenUtil {
         return userId;
     }
 
+    /*
+     * 当前系统简单快速获取用户id的重载方法
+     * */
+    public static Long getUserId(String headerToken) {
+        return Long.valueOf(JwtTokenUtil.getUserId(headerToken.substring(9), Audience.base64Secret));
+    }
+
     /**
      * 是否已过期
      *

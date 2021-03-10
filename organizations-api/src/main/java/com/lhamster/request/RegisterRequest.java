@@ -14,7 +14,7 @@ import java.io.Serializable;
 @Data
 @ApiModel(value = "注册入参")
 public class RegisterRequest implements Serializable {
-    @ApiModelProperty(value = "用户名", example = "edward", required = true)
+    @ApiModelProperty(value = "用户名", notes = "注册时用户名必填，修改密码时用户名不用填", example = "edward")
     private String username;
 
     @ApiModelProperty(value = "密码", example = "123456789", required = true)

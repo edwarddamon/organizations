@@ -1,5 +1,6 @@
 package com.lhamster.facade;
 
+import com.lhamster.request.ChangePwdRequest;
 import com.lhamster.request.LoginRequest;
 import com.lhamster.request.MessageRequest;
 import com.lhamster.request.RegisterRequest;
@@ -22,4 +23,10 @@ public interface UserFacade {
 
     /*用户登录*/
     Response login(LoginRequest loginRequest);
+
+    /*重置密码*/
+    Response resetPassword(RegisterRequest registerRequest);
+
+    /*修改密码*/
+    Response changePassword(ChangePwdRequest changePwdRequest, Long userId);
 }
