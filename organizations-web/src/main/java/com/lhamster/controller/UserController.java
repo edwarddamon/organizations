@@ -2,17 +2,20 @@ package com.lhamster.controller;
 
 import com.lhamster.facade.UserFacade;
 import com.lhamster.request.MessageRequest;
+import com.lhamster.request.RegisterRequest;
 import com.lhamster.response.exception.ServerException;
 import com.lhamster.response.result.Response;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Date;
 import java.util.Objects;
 
 /**
@@ -24,7 +27,6 @@ import java.util.Objects;
 @RestController
 @Api(value = "用户")
 public class UserController {
-
     @Reference
     private UserFacade userFacade;
 
@@ -54,5 +56,17 @@ public class UserController {
         } else {
             throw new ServerException(Boolean.FALSE, "信息发送失败");
         }
+    }
+
+    @PostMapping("/register")
+    @ApiOperation(value = "注册", produces = "application/json")
+    public Response register(@RequestBody RegisterRequest registerRequest) {
+        if (StringUtils.isEmpty(registerRequest.getUsername()) || StringUtils.isEmpty(registerRequest.getPassword())
+                || StringUtils.isEmpty(registerRequest.getPhone()) || StringUtils.isEmpty(registerRequest.getCode())) {
+            throw new ServerException(Boolean.FALSE, "入参不能为空");
+        }
+        log.info("入参为：" + registerRequest);
+        /*注册*/
+        return userFacade.register(registerRequest);
     }
 }

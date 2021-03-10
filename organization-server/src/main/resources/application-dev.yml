@@ -7,6 +7,8 @@ dubbo:
   registry:
     address: 192.168.68.31:2181 #zookeeper启动的ip地址+端口号
     protocol: zookeeper
+  provider:
+    timeout: 3000 #超时时间
 
 mybatis-plus:
   config-location: classpath:mybatis/mybatis-config.xml #指定全局配置文件位置
@@ -40,3 +42,4 @@ spring:
         min-idle: 0
     lettuce:
       shutdown-timeout: 0
+    database: 1 #使用的数据库索引
