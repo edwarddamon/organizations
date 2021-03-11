@@ -269,8 +269,14 @@ public class UserFacadeImpl implements UserFacade {
             throw new ServerException(Boolean.FALSE, "您是社联主席或社联管理员，无法注销账户");
         }
         // 如果都不是则允许注销
+        OrgUser orgUser = orgUserService.getById(userId);
+        String avatar = orgUser.getUserAvatar();
         boolean res = orgUserService.removeById(userId);
         if (res) {
+            String oldFileName = avatar.substring(avatar.lastIndexOf("/") + 1);
+            if (oldFileName.length() > 6) { // 默认的图标不删除
+                TencentCOSUtil.deletefile("avatar/" + oldFileName);
+            }
             return new Response(Boolean.TRUE, "注销账户成功");
         } else {
             throw new ServerException(Boolean.FALSE, "注销账户失败");

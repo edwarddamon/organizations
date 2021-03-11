@@ -1,6 +1,5 @@
 package com.lhamster.exception.handler;
 
-import com.lhamster.facade.DemoFacade;
 import com.lhamster.response.exception.ServerException;
 import com.lhamster.response.result.Response;
 import org.slf4j.Logger;
