@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>文件上传测试</title>
+</head>
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.js"></script>
+<body>
+上传头像:
+<input id="content" type="file">
+<input id="up" type="button" value="头像上传">
+</body>
+<script>
+    $(function () {
+        $("#up").click(function () {
+            let formData = new FormData();
+            formData.append("file", $("#content")[0].files[0]);
+            $.ajax({
+                type: "post",
+                url: "http://localhost:8082/organizations/web/user/updateAvatar",
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: {
+                    'lhamster_identity_info': "lhamster eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiIyIiwic3ViIjoiZWR3YXJkIiwiaXNzIjoiMSIsImlhdCI6MTYxNTM5MDIwOCwiYXVkIjoiRGFtb25fRWR3YXJkIiwiZXhwIjoxNjE3OTgyMjA4LCJuYmYiOjE2MTUzOTAyMDh9.V7-p4uvK7WYe0bBIMmnUJl6arC_Zxxy6xC6rcEkQ37I"
+                },
+                success: function (res) {
+                    console.log(res);
+                }
+            })
+        })
+    })
+</script>
+</html>

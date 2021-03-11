@@ -12,3 +12,8 @@ server:
 # swagger开关
 swagger:
   enabled: true
+
+# 时间格式
+spring:
+  mvc:
+    date-format: yyyy-MM-dd HH:mm:ss

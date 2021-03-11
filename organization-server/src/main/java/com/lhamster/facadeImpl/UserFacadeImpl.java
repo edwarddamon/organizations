@@ -1,17 +1,23 @@
 package com.lhamster.facadeImpl;
 
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.lhamster.entity.OrgDepartment;
 import com.lhamster.entity.OrgUser;
-import com.lhamster.request.ChangePwdRequest;
+import com.lhamster.entity.OrgUserOrganizationRel;
+import com.lhamster.entity.OrgUserRoleRel;
+import com.lhamster.request.*;
+import com.lhamster.response.OrgUserInfoResponse;
+import com.lhamster.service.OrgDepartmentService;
+import com.lhamster.service.OrgUserOrganizationRelService;
+import com.lhamster.service.OrgUserRoleRelService;
 import com.lhamster.util.JwtTokenUtil;
 import com.lhamster.util.SmsUtils;
 import com.lhamster.facade.UserFacade;
-import com.lhamster.request.LoginRequest;
-import com.lhamster.request.MessageRequest;
-import com.lhamster.request.RegisterRequest;
 import com.lhamster.response.exception.ServerException;
 import com.lhamster.response.result.Response;
 import com.lhamster.service.OrgUserService;
+import com.lhamster.util.TencentCOSUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Service;
@@ -20,10 +26,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.io.File;
 import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author Damon_Edward
@@ -36,6 +41,9 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class UserFacadeImpl implements UserFacade {
     private final OrgUserService orgUserService;
+    private final OrgUserOrganizationRelService orgUserOrganizationRelService;
+    private final OrgDepartmentService orgDepartmentService;
+    private final OrgUserRoleRelService orgUserRoleRelService;
     private final RedisTemplate redisTemplate;
 
     @Override
@@ -82,6 +90,9 @@ public class UserFacadeImpl implements UserFacade {
                     try {
                         OrgUser orgUser = new OrgUser();
                         orgUser.setUserUsername(registerRequest.getUsername());
+                        // 存储桶中的默认头像
+                        String avatar = "https://lhamster-organizations-1302533254.cos.ap-nanjing.myqcloud.com/avatar/" + new Random().nextInt(3) + ".jpg";
+                        orgUser.setUserAvatar(avatar);
                         orgUser.setUserPassword(registerRequest.getPassword());
                         orgUser.setUserPhone(registerRequest.getPhone());
                         orgUser.setCreateAt(LocalDateTime.now());
@@ -167,6 +178,102 @@ public class UserFacadeImpl implements UserFacade {
             return new Response(Boolean.TRUE, "密码修改成功");
         } else {
             throw new ServerException(Boolean.FALSE, "旧密码错误");
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Response updateAvatar(File localFile, String filename, Long userId) {
+        try {
+            // 新头像的地址
+            String headPicUrl = TencentCOSUtil.uploadObject(localFile, "avatar/" + filename);
+            // 查询旧头像地址
+            OrgUser orgUser = orgUserService.getById(userId);
+            // 删除旧头像
+            String oldHeadPicUrl = orgUser.getUserAvatar();
+            String oldFileName = oldHeadPicUrl.substring(oldHeadPicUrl.lastIndexOf("/") + 1);
+            if (oldFileName.length() > 6) { // 默认的图标不删除
+                TencentCOSUtil.deletefile("avatar/" + oldFileName);
+            }
+            // 将新头像地址插入数据库
+            orgUser.setUserAvatar(headPicUrl);
+            orgUserService.updateById(orgUser);
+            return new Response(Boolean.TRUE, "头像更新成功");
+        } catch (Exception e) {
+            throw new ServerException(Boolean.FALSE, "头像更新失败");
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Response updateUser(UpdateUserRequest updateUserRequest, Long userId) {
+        OrgUser orgUser = orgUserService.getById(userId);
+        if (!StrUtil.hasBlank(updateUserRequest.getNickName())) {
+            orgUser.setUserUsername(updateUserRequest.getNickName());
+        }
+        if (Objects.nonNull(updateUserRequest.getSex())) {
+            orgUser.setUserSex(updateUserRequest.getSex());
+        }
+        if (!StrUtil.hasBlank(updateUserRequest.getQQ())) {
+            orgUser.setUserQq(updateUserRequest.getQQ());
+        }
+        if (!StrUtil.hasBlank(updateUserRequest.getVx())) {
+            orgUser.setUserVx(updateUserRequest.getVx());
+        }
+        orgUser.setUpdateAt(LocalDateTime.now());
+        try {
+            orgUserService.updateById(orgUser);
+            return new Response(Boolean.TRUE, "更新用户信息成功");
+        } catch (Exception e) {
+            throw new ServerException(Boolean.FALSE, "更新用户信息失败");
+        }
+    }
+
+    @Override
+    public Response getCurrentUser(Long userId) {
+        OrgUser orgUser = orgUserService.getById(userId);
+        OrgUserInfoResponse userInfoResponse = OrgUserInfoResponse.builder()
+                .userAvatar(orgUser.getUserAvatar())
+                .userUsername(orgUser.getUserUsername())
+                .userPhone(orgUser.getUserPhone())
+                .userQq(orgUser.getUserQq())
+                .userVx(orgUser.getUserVx())
+                .userSex(orgUser.getUserSex())
+                .build();
+        return new Response<OrgUserInfoResponse>(Boolean.TRUE, "获取用户信息成功", userInfoResponse);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Response cancellationUser(Long userId) {
+        // 检查是否在某个社团任职
+        int count = orgDepartmentService.count(new QueryWrapper<OrgDepartment>()
+                .eq("dep_minister_id", userId)
+                .or()
+                .eq("dep_vice_minister_id", userId));
+        if (count > 0) {
+            throw new ServerException(Boolean.FALSE, "您正在任职，无法注销账户");
+        }
+        // 检查用户是否为某社团社员
+        int count1 = orgUserOrganizationRelService.count(new QueryWrapper<OrgUserOrganizationRel>()
+                .eq("rel_user_id", userId)
+                .eq("rel_role_id", 2));
+        if (count1 > 0) {
+            throw new ServerException(Boolean.FALSE, "您是社员，无法注销账户");
+        }
+        // 检查是否为社联主席或社联管理员
+        int count2 = orgUserRoleRelService.count(new QueryWrapper<OrgUserRoleRel>()
+                .eq("rel_user_id", userId)
+                .in("rel_role_id", 3, 4));
+        if (count2 > 0) {
+            throw new ServerException(Boolean.FALSE, "您是社联主席或社联管理员，无法注销账户");
+        }
+        // 如果都不是则允许注销
+        boolean res = orgUserService.removeById(userId);
+        if (res) {
+            return new Response(Boolean.TRUE, "注销账户成功");
+        } else {
+            throw new ServerException(Boolean.FALSE, "注销账户失败");
         }
     }
 }

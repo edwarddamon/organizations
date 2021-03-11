@@ -61,4 +61,11 @@ public class UserMessageAop {
         // 通知表插入数据
         saveMessage("密码修改成功", (Long) joinPoint.getArgs()[1]);
     }
+
+    @ApiOperation(value = "更新用户信息")
+    @AfterReturning(value = "execution(* com.lhamster.facadeImpl.UserFacadeImpl.updateUser(..))")
+    private void updateUser(JoinPoint joinPoint) {
+        // 通知表插入数据
+        saveMessage("用户信息更新成功", (Long) joinPoint.getArgs()[1]);
+    }
 }

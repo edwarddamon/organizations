@@ -1,10 +1,9 @@
 package com.lhamster.facade;
 
-import com.lhamster.request.ChangePwdRequest;
-import com.lhamster.request.LoginRequest;
-import com.lhamster.request.MessageRequest;
-import com.lhamster.request.RegisterRequest;
+import com.lhamster.request.*;
 import com.lhamster.response.result.Response;
+
+import java.io.File;
 
 /**
  * @author Damon_Edward
@@ -29,4 +28,16 @@ public interface UserFacade {
 
     /*修改密码*/
     Response changePassword(ChangePwdRequest changePwdRequest, Long userId);
+
+    /*更新用户头像*/
+    Response updateAvatar(File localFile, String filename, Long userId);
+
+    /*更新用户信息*/
+    Response updateUser(UpdateUserRequest updateUserRequest, Long userId);
+
+    /*获取当前登录用户的信息*/
+    Response getCurrentUser(Long userId);
+
+    /*注销当前用户*/
+    Response cancellationUser(Long userId);
 }

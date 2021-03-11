@@ -11,7 +11,7 @@ public class Constants {
     /**
      * 存储桶的名称
      */
-    public static final String bucketName = "lhamster-edward-blog-1302533254";
+    public static final String bucketName = "lhamster-organizations-1302533254";
     /**
      * 腾讯云账户密钥对: secretId
      */
