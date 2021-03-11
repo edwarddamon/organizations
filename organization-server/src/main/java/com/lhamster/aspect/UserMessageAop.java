@@ -34,7 +34,7 @@ public class UserMessageAop {
     /*
      * 提取公共代码
      * */
-    private void saveMessage(String msg, Long userId) {
+    public void saveMessage(String msg, Long userId) {
         OrgMessage orgMessage = OrgMessage.builder()
                 .mesContent(msg)
                 .mesStatus("UNREAD")
