@@ -116,7 +116,7 @@ public class UserFacadeImpl implements UserFacade {
         // 登录成功
         String jwt = JwtTokenUtil.createJWT(String.valueOf(user.getUserId()), user.getUserUsername(), null);
         log.info("[JWT]：{}", jwt);
-        return new Response<String>(Boolean.TRUE, "登陆成功", jwt);
+        return new Response<String>(Boolean.TRUE, "登陆成功", JwtTokenUtil.TOKEN_PREFIX + jwt);
     }
 
     @Override
