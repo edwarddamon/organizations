@@ -344,4 +344,4 @@ SET FOREIGN_KEY_CHECKS = 1;
 
 # 修改的sql
 ALTER TABLE `organizations`.`org_organization`
-    MODIFY COLUMN `organ_status` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '社团状态（undetermined\n\n、normal、cancel、cancelled）' AFTER `organ_star`;
+    MODIFY COLUMN `organ_status` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '社团状态（dead:申请创建失败、undetermined\n\n:申请创建待审批、normal:正常、cancel:申请注销待审批、cancelled:已经注销）' AFTER `organ_star`;

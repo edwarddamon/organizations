@@ -1,6 +1,8 @@
 package com.lhamster.controller;
 
 import com.lhamster.facade.OrganizationFacade;
+import com.lhamster.request.CancelOrganizationRequest;
+import com.lhamster.request.CheckOrganizationRequest;
 import com.lhamster.request.CreateOrganizationRequest;
 import com.lhamster.response.exception.ServerException;
 import com.lhamster.response.result.Response;
@@ -14,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpSession;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -72,5 +76,19 @@ public class OrganizationsController {
         createOrganizationRequest.setAvatarUrl(response.getData());
         // 创建社团
         return organizationFacade.createOrganization(createOrganizationRequest, JwtTokenUtil.getUserId(token));
+    }
+
+    @PostMapping("/cancel")
+    @ApiOperation(value = "申请注销社团", notes = "必须是社长才能申请注销社团")
+    public Response cancel(@Validated @RequestBody CancelOrganizationRequest cancelOrganizationRequest,
+                           @RequestHeader(JwtTokenUtil.AUTH_HEADER_KEY) String token) {
+        return organizationFacade.cancelOrganization(cancelOrganizationRequest, JwtTokenUtil.getUserId(token));
+    }
+
+    @PostMapping("/check")
+    @ApiOperation(value = "审批社团创建/注销申请", notes = "必须是社联主席或社联管理员才能审批")
+    public Response checkApply(@Validated @RequestBody CheckOrganizationRequest checkOrganizationRequest,
+                               @RequestHeader(JwtTokenUtil.AUTH_HEADER_KEY) String token) {
+        return organizationFacade.check(checkOrganizationRequest, JwtTokenUtil.getUserId(token));
     }
 }

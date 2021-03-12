@@ -33,6 +33,7 @@ public class GlobalExceptionHandler {
     public Response handleException(ServerException e) {
         // 打印异常信息
         log.error("[异常信息]：" + e.getMsg());
+        e.printStackTrace();
         return new Response(e.getResult(), e.getMsg());
     }
 
@@ -49,6 +50,7 @@ public class GlobalExceptionHandler {
             if (fieldError != null) {
                 msg = fieldError.getDefaultMessage();
             }
+            e.printStackTrace();
             /// MethodArgumentNotValidException
         } else if (e instanceof MethodArgumentNotValidException) {
             BindingResult bindingResult = ((MethodArgumentNotValidException) e).getBindingResult();
@@ -57,6 +59,7 @@ public class GlobalExceptionHandler {
             if (fieldError != null) {
                 msg = fieldError.getDefaultMessage();
             }
+            e.printStackTrace();
             /// ValidationException 的子类异常ConstraintViolationException
         } else if (e instanceof ConstraintViolationException) {
             /*
@@ -71,6 +74,7 @@ public class GlobalExceptionHandler {
                     msg = msg.substring(lastIndex + 1).trim();
                 }
             }
+            e.printStackTrace();
             /// ValidationException 的其它子类异常
         } else {
             msg = "处理参数时异常";
