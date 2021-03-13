@@ -13,4 +13,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface OrgDepartmentService extends IService<OrgDepartment> {
 
+    /*检查用户身份*/
+    Integer checkIdentity(String orgId, Long userId);
 }

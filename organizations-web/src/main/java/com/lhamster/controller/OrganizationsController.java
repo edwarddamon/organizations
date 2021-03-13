@@ -4,8 +4,10 @@ import com.lhamster.facade.OrganizationFacade;
 import com.lhamster.request.CancelOrganizationRequest;
 import com.lhamster.request.CheckOrganizationRequest;
 import com.lhamster.request.CreateOrganizationRequest;
+import com.lhamster.request.UpdateOrganizationRequest;
 import com.lhamster.response.exception.ServerException;
 import com.lhamster.response.result.Response;
+import com.lhamster.util.FileUtil;
 import com.lhamster.util.JwtTokenUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -16,14 +18,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpSession;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.lang.reflect.Array;
+import java.util.*;
 
 /**
  * @author Damon_Edward
@@ -91,4 +89,58 @@ public class OrganizationsController {
                                @RequestHeader(JwtTokenUtil.AUTH_HEADER_KEY) String token) {
         return organizationFacade.check(checkOrganizationRequest, JwtTokenUtil.getUserId(token));
     }
+
+    @PostMapping("/updateOrganization")
+    @ApiOperation(value = "更新社团信息", notes = "社团核心管理人员才可更新社团信息")
+    public Response updateOrganization(@Validated UpdateOrganizationRequest updateOrganizationRequest,
+                                       @RequestParam(value = "newAvatar", required = false) MultipartFile newAvatar,
+                                       @RequestParam(value = "introductionAvatars", required = false) MultipartFile[] introductionAvatars,
+                                       HttpSession session,
+                                       @RequestHeader(JwtTokenUtil.AUTH_HEADER_KEY) String token) {
+        log.info("[更新的信息]：{}", updateOrganizationRequest);
+        log.info("[新封面]：{}", newAvatar);
+        log.info("[社团介绍图片]：{}", Arrays.toString(introductionAvatars));
+        String newAvatarUrl = null;
+        List<String> newIntroductionUrls = new ArrayList<>();
+        // 新封面上传
+        if (Objects.nonNull(newAvatar)) {
+            String fileName = FileUtil.randomFileName(Objects.requireNonNull(newAvatar.getOriginalFilename()));
+            // 即将写入磁盘的地址
+            File localFile = new File(session.getServletContext().getRealPath("/") + fileName);
+            // 将MultipartFile转为File从内存中写入磁盘
+            try {
+                newAvatar.transferTo(localFile);
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw new ServerException(Boolean.FALSE, "文件写入磁盘失败");
+            }
+            // 上传社团封面
+            Response<String> response = organizationFacade.updateAvatar(updateOrganizationRequest.getOrgId(), localFile, fileName);
+            newAvatarUrl = response.getData();
+        }
+        // 社团详细介绍图片上传
+        // 删除旧照片地址
+        organizationFacade.deleteOldIntroductionUrls(updateOrganizationRequest.getOrgId());
+        // 上传新照片地址
+        for (MultipartFile introductionAvatar : introductionAvatars) {
+            if (Objects.nonNull(introductionAvatar)) {
+                String fileName = FileUtil.randomFileName(Objects.requireNonNull(introductionAvatar.getOriginalFilename()));
+                // 即将写入磁盘的地址
+                File localFile = new File(session.getServletContext().getRealPath("/") + fileName);
+                // 将MultipartFile转为File从内存中写入磁盘
+                try {
+                    introductionAvatar.transferTo(localFile);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    throw new ServerException(Boolean.FALSE, "文件写入磁盘失败");
+                }
+                // 上传社团详细介绍图片
+                Response<String> response = organizationFacade.updateNewIntroductionUrl(localFile, fileName);
+                newIntroductionUrls.add(response.getData());
+            }
+        }
+        // 将新的地址和信息存入数据库
+        return organizationFacade.updateOrganization(updateOrganizationRequest, newAvatarUrl, newIntroductionUrls, JwtTokenUtil.getUserId(token));
+    }
+
 }

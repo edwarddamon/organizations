@@ -5,7 +5,7 @@ dubbo:
     address: 192.168.68.31:2181 #zookeeper启动的ip地址+端口号
     protocol: zookeeper
   consumer:
-    timeout: 3000 #超时时间
+    timeout: 10000 #超时时间
 server:
   port: 8082
 

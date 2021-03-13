@@ -2,4 +2,11 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lhamster.mapper.OrgDepartmentMapper">
 
+    <select id="checkIdentity" resultType="java.lang.Integer">
+        select count(1)
+        from `org_department`
+        where `dep_organization_id` = #{orgId}
+          and (`dep_minister_id` = #{userId}
+            or `dep_vice_minister_id` = #{userId})
+    </select>
 </mapper>

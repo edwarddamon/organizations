@@ -1,5 +1,7 @@
 package com.lhamster.facadeImpl;
 
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.lhamster.entity.OrgDepartment;
 import com.lhamster.entity.OrgOrganization;
@@ -9,6 +11,7 @@ import com.lhamster.facade.OrganizationFacade;
 import com.lhamster.request.CancelOrganizationRequest;
 import com.lhamster.request.CheckOrganizationRequest;
 import com.lhamster.request.CreateOrganizationRequest;
+import com.lhamster.request.UpdateOrganizationRequest;
 import com.lhamster.response.exception.ServerException;
 import com.lhamster.response.result.Response;
 import com.lhamster.service.OrgDepartmentService;
@@ -46,11 +49,61 @@ public class OrganizationFacadeImpl implements OrganizationFacade {
     @Override
     public Response<String> updateAvatar(File localFile, String filename) {
         try {
-            // 封面地址
+            // 上传封面地址
             String headPicUrl = TencentCOSUtil.uploadObject(localFile, "organization-avatar/" + filename);
             return new Response<String>(Boolean.TRUE, "封面上传成功", headPicUrl);
         } catch (Exception e) {
             throw new ServerException(Boolean.FALSE, "封面上传失败");
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Response<String> updateAvatar(String orgId, File localFile, String fileName) {
+        // 判断该社团是否有封面
+        OrgOrganization orgOrganization = orgOrganizationService.getById(orgId);
+        String organAvatar = orgOrganization.getOrganAvatar();
+        if (!StrUtil.hasBlank(organAvatar)) {
+            // 有 -> 删除该封面
+            TencentCOSUtil.deletefile("organization-avatar/" + organAvatar.substring(organAvatar.lastIndexOf("/") + 1));
+        }
+        return updateAvatar(localFile, fileName);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteOldIntroductionUrls(String orgId) {
+        // 判断之前是否有社团详细介绍照片
+        List<String> oldIntroductionUrls = new ArrayList<>();
+        OrgOrganization orgOrganization = orgOrganizationService.getById(orgId);
+        String avatars = orgOrganization.getOrganIntroductionDetailAvatar();
+        while (!StrUtil.hasBlank(avatars)) {
+            // 有 -> 删除
+            if (!avatars.contains(",")) {
+                oldIntroductionUrls.add(avatars);
+                break;
+            }
+            oldIntroductionUrls.add(avatars.substring(0, avatars.indexOf(",")));
+            avatars = avatars.substring(avatars.indexOf(",") + 1);
+        }
+        // 删除
+        if (CollectionUtil.isNotEmpty(oldIntroductionUrls)) {
+            oldIntroductionUrls.forEach(url -> {
+                TencentCOSUtil.deletefile("organization-introductionAvatars" + url.substring(url.lastIndexOf("/")));
+            });
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Response<String> updateNewIntroductionUrl(File localFile, String fileName) {
+        try {
+            // 上传详细介绍地址
+            String headPicUrl = TencentCOSUtil.uploadObject(localFile, "organization-introductionAvatars/" + fileName);
+            log.info("[上传成功]：{}", headPicUrl);
+            return new Response<String>(Boolean.TRUE, "图片上传成功", headPicUrl);
+        } catch (Exception e) {
+            throw new ServerException(Boolean.FALSE, "图片上传失败");
         }
     }
 
@@ -161,5 +214,40 @@ public class OrganizationFacadeImpl implements OrganizationFacade {
         }
         orgOrganizationService.updateById(organization);
         return new Response(Boolean.TRUE, "审批成功");
+    }
+
+    @Override
+    public Response updateOrganization(UpdateOrganizationRequest updateOrganizationRequest, String newAvatarUrl, List<String> newIntroductionUrls, Long userId) {
+        // 检查当前登录用户身份
+        Integer count = orgDepartmentService.checkIdentity(updateOrganizationRequest.getOrgId(), userId);
+        if (count < 1) {
+            throw new ServerException(Boolean.FALSE, "权限不足");
+        }
+        // 查询
+        OrgOrganization organization = orgOrganizationService.getById(updateOrganizationRequest.getOrgId());
+        // 新封面
+        if (!StrUtil.hasBlank(newAvatarUrl)) {
+            organization.setOrganAvatar(newAvatarUrl);
+        }
+        // 社团名
+        if (!StrUtil.hasBlank(updateOrganizationRequest.getOrgName())) {
+            organization.setOrganName(updateOrganizationRequest.getOrgName());
+        }
+        // 新介绍
+        if (!StrUtil.hasBlank(updateOrganizationRequest.getDetailIntroduction())) {
+            organization.setOrganIntroductionDetail(updateOrganizationRequest.getDetailIntroduction());
+        }
+        // 新介绍图片
+        if (CollectionUtil.isNotEmpty(newIntroductionUrls)) {
+            StringBuffer newUrls = new StringBuffer();
+            newIntroductionUrls.forEach(url -> {
+                newUrls.append(url + ",");
+            });
+            String val = newUrls.substring(0, newUrls.lastIndexOf(","));
+            organization.setOrganIntroductionDetailAvatar(val);
+        }
+        // 更新
+        orgOrganizationService.updateById(organization);
+        return new Response(Boolean.TRUE, "更新社团信息成功");
     }
 }
