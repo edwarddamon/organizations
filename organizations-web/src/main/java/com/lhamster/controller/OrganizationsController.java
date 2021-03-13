@@ -1,10 +1,7 @@
 package com.lhamster.controller;
 
 import com.lhamster.facade.OrganizationFacade;
-import com.lhamster.request.CancelOrganizationRequest;
-import com.lhamster.request.CheckOrganizationRequest;
-import com.lhamster.request.CreateOrganizationRequest;
-import com.lhamster.request.UpdateOrganizationRequest;
+import com.lhamster.request.*;
 import com.lhamster.response.exception.ServerException;
 import com.lhamster.response.result.Response;
 import com.lhamster.util.FileUtil;
@@ -20,7 +17,6 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.*;
 
 /**
@@ -100,6 +96,8 @@ public class OrganizationsController {
         log.info("[更新的信息]：{}", updateOrganizationRequest);
         log.info("[新封面]：{}", newAvatar);
         log.info("[社团介绍图片]：{}", Arrays.toString(introductionAvatars));
+        // 检验当前登录用户身份
+        organizationFacade.checkIdentity(updateOrganizationRequest.getOrgId(), JwtTokenUtil.getUserId(token));
         String newAvatarUrl = null;
         List<String> newIntroductionUrls = new ArrayList<>();
         // 新封面上传
@@ -142,5 +140,4 @@ public class OrganizationsController {
         // 将新的地址和信息存入数据库
         return organizationFacade.updateOrganization(updateOrganizationRequest, newAvatarUrl, newIntroductionUrls, JwtTokenUtil.getUserId(token));
     }
-
 }

@@ -8,10 +8,7 @@ import com.lhamster.entity.OrgOrganization;
 import com.lhamster.entity.OrgUserOrganizationRel;
 import com.lhamster.entity.OrgUserRoleRel;
 import com.lhamster.facade.OrganizationFacade;
-import com.lhamster.request.CancelOrganizationRequest;
-import com.lhamster.request.CheckOrganizationRequest;
-import com.lhamster.request.CreateOrganizationRequest;
-import com.lhamster.request.UpdateOrganizationRequest;
+import com.lhamster.request.*;
 import com.lhamster.response.exception.ServerException;
 import com.lhamster.response.result.Response;
 import com.lhamster.service.OrgDepartmentService;
@@ -249,5 +246,13 @@ public class OrganizationFacadeImpl implements OrganizationFacade {
         // 更新
         orgOrganizationService.updateById(organization);
         return new Response(Boolean.TRUE, "更新社团信息成功");
+    }
+
+    @Override
+    public void checkIdentity(String orgId, Long userId) {
+        Integer count = orgDepartmentService.checkIdentity(orgId, userId);
+        if (count < 1) {
+            throw new ServerException(Boolean.FALSE, "权限不足");
+        }
     }
 }

@@ -26,7 +26,7 @@ public class OrgUserInfoResponse implements Serializable {
     @ApiModelProperty(value = "用户名")
     private String userUsername;
 
-    @ApiModelProperty(value = "用户名")
+    @ApiModelProperty(value = "性别")
     private Integer userSex;
 
     @ApiModelProperty(value = "手机号")

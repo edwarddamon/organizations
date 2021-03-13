@@ -1,9 +1,6 @@
 package com.lhamster.facade;
 
-import com.lhamster.request.CancelOrganizationRequest;
-import com.lhamster.request.CheckOrganizationRequest;
-import com.lhamster.request.CreateOrganizationRequest;
-import com.lhamster.request.UpdateOrganizationRequest;
+import com.lhamster.request.*;
 import com.lhamster.response.result.Response;
 
 import java.io.File;
@@ -35,4 +32,7 @@ public interface OrganizationFacade {
 
     /*更新社团信息*/
     Response updateOrganization(UpdateOrganizationRequest updateOrganizationRequest, String newAvatarUrl, List<String> newIntroductionUrls, Long userId);
+
+    /*检验身份*/
+    void checkIdentity(String orgId, Long userId);
 }

@@ -8,5 +8,6 @@
         where `dep_organization_id` = #{orgId}
           and (`dep_minister_id` = #{userId}
             or `dep_vice_minister_id` = #{userId})
+          and `dep_name` in ("社长", "副社长", "团支书")
     </select>
 </mapper>
