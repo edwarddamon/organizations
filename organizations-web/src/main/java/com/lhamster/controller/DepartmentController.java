@@ -3,11 +3,11 @@ package com.lhamster.controller;
 import com.lhamster.entity.OrgDepartment;
 import com.lhamster.facade.DepartmentFacade;
 import com.lhamster.request.CreateDepartmentRequest;
+import com.lhamster.request.OfficeDepartmentRequest;
 import com.lhamster.request.UpdateDepartmentRequest;
 import com.lhamster.response.DepartmentInfoResponse;
 import com.lhamster.response.result.Response;
 import com.lhamster.util.JwtTokenUtil;
-import io.jsonwebtoken.Jwt;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +31,6 @@ public class DepartmentController {
     @Reference
     private DepartmentFacade departmentFacade;
 
-    // 部门列表 部门详情（查找出部门对应的用户信息）
     @GetMapping("/depart/{orgId}")
     @ApiOperation(value = "部门列表")
     public Response<List<OrgDepartment>> depart(@Validated @NotNull(message = "社团id不能为空") @PathVariable("orgId") Long orgId,
@@ -67,5 +66,20 @@ public class DepartmentController {
     public Response update(@Validated @RequestBody UpdateDepartmentRequest updateDepartmentRequest,
                            @RequestHeader(JwtTokenUtil.AUTH_HEADER_KEY) String token) {
         return departmentFacade.updateDepartment(updateDepartmentRequest, JwtTokenUtil.getUserId(token));
+    }
+
+    @PostMapping("/office")
+    @ApiOperation(value = "入职和解雇", notes = "社长权限")
+    public Response office(@Validated @RequestBody OfficeDepartmentRequest officeDepartmentRequest,
+                           @RequestHeader(JwtTokenUtil.AUTH_HEADER_KEY) String token) {
+        return departmentFacade.office(officeDepartmentRequest, JwtTokenUtil.getUserId(token));
+    }
+
+    @PostMapping("/boss/{orgId}/{bossId}")
+    @ApiOperation(value = "委任下届社长", notes = "社长权限")
+    public Response boss(@Validated @NotNull(message = "社团id不能为空") @PathVariable(value = "orgId") Long orgId,
+                         @Validated @NotNull(message = "下届社长id不能为空") @PathVariable(value = "bossId") Long bossId,
+                         @RequestHeader(JwtTokenUtil.AUTH_HEADER_KEY) String token) {
+        return departmentFacade.boss(orgId, bossId, JwtTokenUtil.getUserId(token));
     }
 }

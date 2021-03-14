@@ -25,4 +25,9 @@ public class OrgDepartmentServiceImpl extends ServiceImpl<OrgDepartmentMapper, O
     public Integer checkIdentity(String orgId, Long userId) {
         return orgDepartmentMapper.checkIdentity(orgId, userId);
     }
+
+    @Override
+    public void updateIt(OrgDepartment orgDepartment) {
+        orgDepartmentMapper.updateIt(orgDepartment);
+    }
 }

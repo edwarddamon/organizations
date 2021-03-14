@@ -2,6 +2,7 @@ package com.lhamster.facade;
 
 import com.lhamster.entity.OrgDepartment;
 import com.lhamster.request.CreateDepartmentRequest;
+import com.lhamster.request.OfficeDepartmentRequest;
 import com.lhamster.request.UpdateDepartmentRequest;
 import com.lhamster.response.DepartmentInfoResponse;
 import com.lhamster.response.result.Response;
@@ -28,4 +29,10 @@ public interface DepartmentFacade {
 
     /*部门详情*/
     Response<DepartmentInfoResponse> departDetail(Long orgId, Long depId, Long userId);
+
+    /*上任/解雇*/
+    Response office(OfficeDepartmentRequest officeDepartmentRequest, Long userId);
+
+    /*委任下届社长*/
+    Response boss(Long orgId, Long bossId, Long userId);
 }

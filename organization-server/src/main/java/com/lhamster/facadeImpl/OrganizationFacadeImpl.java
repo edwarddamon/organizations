@@ -255,4 +255,30 @@ public class OrganizationFacadeImpl implements OrganizationFacade {
             throw new ServerException(Boolean.FALSE, "权限不足");
         }
     }
+
+    /*
+     * 检查当前用户是否为社联主席或社联管理员身份
+     * */
+    private void checkSheLian(Long userId) {
+        int count = orgUserRoleRelService.count(new QueryWrapper<OrgUserRoleRel>()
+                .eq("rel_user_id", userId)
+                .in("rel_role_id", 3, 4));
+        if (count < 1) {
+            throw new ServerException(Boolean.FALSE, "权限不足");
+        }
+    }
+
+    @Override
+    public Response star(Long orgId, Integer star, Long userId) {
+        // 检查当前用户身份｛社联管理员｝
+        this.checkSheLian(userId);
+        // 设置社团星级
+        OrgOrganization organization = orgOrganizationService.getById(orgId);
+        if (star < 3 || star > 5) {
+            throw new ServerException(Boolean.FALSE, "社团星级只能为3-5");
+        }
+        organization.setOrganStar(star);
+        orgOrganizationService.updateById(organization);
+        return new Response(Boolean.TRUE, "社团星级设置成功");
+    }
 }

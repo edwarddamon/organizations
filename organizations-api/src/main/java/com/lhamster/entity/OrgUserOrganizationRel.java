@@ -2,20 +2,24 @@ package com.lhamster.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+
 import java.time.LocalDateTime;
 import java.io.Serializable;
+
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
  * <p>
- * 
+ *
  * </p>
  *
  * @author Edward
  * @since 2021-03-09
  */
 @Data
+@Builder
 @EqualsAndHashCode(callSuper = false)
 public class OrgUserOrganizationRel implements Serializable {
 

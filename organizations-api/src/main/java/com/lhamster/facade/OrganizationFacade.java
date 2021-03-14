@@ -35,4 +35,7 @@ public interface OrganizationFacade {
 
     /*检验身份*/
     void checkIdentity(String orgId, Long userId);
+
+    /*设置社团星级*/
+    Response star(Long orgId, Integer star, Long userId);
 }

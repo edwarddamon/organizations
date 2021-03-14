@@ -3,13 +3,13 @@ package com.lhamster.aspect;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.lhamster.entity.OrgDepartment;
 import com.lhamster.entity.OrgOrganization;
+import com.lhamster.entity.OrgUserOrganizationRel;
 import com.lhamster.entity.OrgUserRoleRel;
 import com.lhamster.request.CancelOrganizationRequest;
 import com.lhamster.request.CheckOrganizationRequest;
 import com.lhamster.request.CreateOrganizationRequest;
-import com.lhamster.service.OrgDepartmentService;
-import com.lhamster.service.OrgOrganizationService;
-import com.lhamster.service.OrgUserRoleRelService;
+import com.lhamster.request.OfficeDepartmentRequest;
+import com.lhamster.service.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
@@ -22,9 +22,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Damon_Edward
@@ -42,6 +42,8 @@ public class OrganizationMessageAop {
     private final OrgUserRoleRelService orgUserRoleRelService;
     private final OrgOrganizationService orgOrganizationService;
     private final OrgDepartmentService orgDepartmentService;
+    private final OrgUserOrganizationRelService orgUserOrganizationRelService;
+    private final OrgUserService orgUserService;
 
     /*
      * 给社联主席和所有社联管理员发送消息
@@ -95,4 +97,60 @@ public class OrganizationMessageAop {
         userMessageAop.saveMessage("您的社团 [" + orgOrganization.getOrganName() + "] 审批" + (arg.getResult() == 0 ? "通过" : "不通过"), depMinisterId);
     }
 
+    @ApiOperation(value = "任职和解雇通知")
+    @AfterReturning(value = "execution(* com.lhamster.facadeImpl.DepartmentFacadeImpl.office(..))")
+    private void office(JoinPoint joinPoint) {
+        OfficeDepartmentRequest joinPointArg = (OfficeDepartmentRequest) joinPoint.getArgs()[0];
+        Long userId = joinPointArg.getTargetId();
+        // 获取社团名称
+        String organName = orgOrganizationService.getById(joinPointArg.getOrgId()).getOrganName();
+        // 获取部门名称
+        OrgDepartment department = orgDepartmentService.getById(joinPointArg.getDepId());
+        // 获取职位名称
+        String jobName = null;
+        if (department.getDepName().equals("副社长") || department.getDepName().equals("团支书") || department.getDepName().equals("财务")) {
+            jobName = department.getDepName();
+        } else {
+            if (joinPointArg.getPosition().equals(1)) {
+                jobName = department.getDepName() + "\t部长";
+            } else {
+                jobName = department.getDepName() + "\t副部长";
+            }
+        }
+        userMessageAop.saveMessage("您已被" + (joinPointArg.getJudge() ? "任职" : "解雇") +
+                " [" + organName + "] " + "【" + jobName + "】职位", userId);
+    }
+
+    @ApiOperation(value = "委任下届社长")
+    @AfterReturning(value = "execution(* com.lhamster.facadeImpl.DepartmentFacadeImpl.boss(..))")
+    private void boss(JoinPoint joinPoint) {
+        OrgOrganization organization = orgOrganizationService.getById((Long) joinPoint.getArgs()[0]);
+        // 通知被委任的人
+        userMessageAop.saveMessage("您已被委任 [" + organization.getOrganName() + "] 【社长】职位", (Long) joinPoint.getArgs()[1]);
+        // 获取新社长名称
+        String username = orgUserService.getById((Long) joinPoint.getArgs()[1]).getUserUsername();
+        // 通知该社团所有人
+        List<Long> userIds = orgUserOrganizationRelService.list(new QueryWrapper<OrgUserOrganizationRel>()
+                .eq("rel_organization_id", (Long) joinPoint.getArgs()[0])
+                .eq("rel_role_id", 2))
+                .stream().map(OrgUserOrganizationRel::getRelUserId).distinct().collect(Collectors.toList());
+        userIds.forEach(userId -> {
+            userMessageAop.saveMessage("您所在的社团 [" + organization.getOrganName() + "] 已更换【社长】,新【社长】为：" + username, userId);
+        });
+    }
+
+    @ApiOperation(value = "社团星级评定")
+    @AfterReturning(value = "execution(* com.lhamster.facadeImpl.OrganizationFacadeImpl.star(..))")
+    public void star(JoinPoint joinPoint) {
+        // 获取社团名称
+        String organName = orgOrganizationService.getById((Long) joinPoint.getArgs()[0]).getOrganName();
+        // 通知该社团所有人
+        List<Long> userIds = orgUserOrganizationRelService.list(new QueryWrapper<OrgUserOrganizationRel>()
+                .eq("rel_organization_id", (Long) joinPoint.getArgs()[0])
+                .eq("rel_role_id", 2))
+                .stream().map(OrgUserOrganizationRel::getRelUserId).distinct().collect(Collectors.toList());
+        userIds.forEach(userId -> {
+            userMessageAop.saveMessage("您所在的社团 [" + organName + "] 已重新判定星级，现在星级为：" + joinPoint.getArgs()[1] + "星级", userId);
+        });
+    }
 }

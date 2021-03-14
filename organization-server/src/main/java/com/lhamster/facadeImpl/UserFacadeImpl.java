@@ -233,6 +233,7 @@ public class UserFacadeImpl implements UserFacade {
     public Response getCurrentUser(Long userId) {
         OrgUser orgUser = orgUserService.getById(userId);
         OrgUserInfoResponse userInfoResponse = OrgUserInfoResponse.builder()
+                .userId(orgUser.getUserId())
                 .userAvatar(orgUser.getUserAvatar())
                 .userUsername(orgUser.getUserUsername())
                 .userPhone(orgUser.getUserPhone())

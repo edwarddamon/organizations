@@ -19,6 +19,8 @@ import java.time.LocalDateTime;
 @Data
 @Builder
 public class OrgUserInfoResponse implements Serializable {
+    @ApiModelProperty(value = "用户id")
+    private Long userId;
 
     @ApiModelProperty(value = "用户头像地址")
     private String userAvatar;

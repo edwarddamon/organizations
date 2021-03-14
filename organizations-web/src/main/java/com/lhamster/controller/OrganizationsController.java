@@ -10,11 +10,15 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
+import org.hibernate.validator.constraints.Range;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpSession;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -139,5 +143,13 @@ public class OrganizationsController {
         }
         // 将新的地址和信息存入数据库
         return organizationFacade.updateOrganization(updateOrganizationRequest, newAvatarUrl, newIntroductionUrls, JwtTokenUtil.getUserId(token));
+    }
+
+    @PostMapping("/star/{orgId}/{star}")
+    @ApiOperation(value = "设置社团星级", notes = "社联管理员权限")
+    public Response star(@PathVariable(value = "orgId") Long orgId,
+                         @PathVariable(value = "star") Integer star,
+                         @RequestHeader(JwtTokenUtil.AUTH_HEADER_KEY) String token) {
+        return organizationFacade.star(orgId, star, JwtTokenUtil.getUserId(token));
     }
 }

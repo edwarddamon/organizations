@@ -15,4 +15,6 @@ import org.apache.ibatis.annotations.Param;
 public interface OrgDepartmentMapper extends BaseMapper<OrgDepartment> {
 
     Integer checkIdentity(@Param("orgId") String orgId, @Param("userId") Long userId);
+
+    void updateIt(OrgDepartment orgDepartment);
 }
