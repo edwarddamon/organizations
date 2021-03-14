@@ -2,7 +2,9 @@ package com.lhamster.controller;
 
 import com.lhamster.facade.OrganizationFacade;
 import com.lhamster.request.*;
+import com.lhamster.response.OrgOrganizationInfoResponse;
 import com.lhamster.response.exception.ServerException;
+import com.lhamster.response.OrgOrganizationListInfoResponse;
 import com.lhamster.response.result.Response;
 import com.lhamster.util.FileUtil;
 import com.lhamster.util.JwtTokenUtil;
@@ -10,15 +12,11 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
-import org.hibernate.validator.constraints.Range;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpSession;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -38,6 +36,25 @@ public class OrganizationsController {
 
     /*图片格式*/
     private static final List<String> suffix = new ArrayList<>(Arrays.asList(".jpg", ".jpeg", ".png", ".gif"));
+
+    @PostMapping("/page")
+    @ApiOperation(value = "社团信息分页")
+    public Response<List<OrgOrganizationListInfoResponse>> page(@Validated @RequestBody OrganizationPageRequest organizationPageRequest) {
+        return organizationFacade.page(organizationPageRequest);
+    }
+
+    @PostMapping("/myPage")
+    @ApiOperation(value = "我的社团信息分页")
+    public Response<List<OrgOrganizationListInfoResponse>> yPage(@RequestBody MyOrganizationPageRequest myOrganizationPageRequest,
+                                                                 @RequestHeader(JwtTokenUtil.AUTH_HEADER_KEY) String token) {
+        return organizationFacade.myPage(myOrganizationPageRequest, JwtTokenUtil.getUserId(token));
+    }
+
+    @GetMapping("/orgDetail/{orgId}")
+    @ApiOperation(value = "社团信息详情")
+    public Response<OrgOrganizationInfoResponse> orgDetail(@PathVariable("orgId") Long orgId) {
+        return organizationFacade.myOrganizationDetail(orgId);
+    }
 
     @PostMapping("/create")
     @ApiOperation(value = "申请创建社团")

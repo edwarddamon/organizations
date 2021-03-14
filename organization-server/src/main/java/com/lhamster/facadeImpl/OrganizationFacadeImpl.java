@@ -3,18 +3,21 @@ package com.lhamster.facadeImpl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.github.pagehelper.PageHelper;
+import com.google.common.collect.Lists;
 import com.lhamster.entity.OrgDepartment;
 import com.lhamster.entity.OrgOrganization;
 import com.lhamster.entity.OrgUserOrganizationRel;
 import com.lhamster.entity.OrgUserRoleRel;
 import com.lhamster.facade.OrganizationFacade;
 import com.lhamster.request.*;
+import com.lhamster.response.OrgOrganizationInfoResponse;
+import com.lhamster.response.OrgOrganizationListInfoResponse;
+import com.lhamster.response.OrgUserInfoResponse;
 import com.lhamster.response.exception.ServerException;
 import com.lhamster.response.result.Response;
-import com.lhamster.service.OrgDepartmentService;
-import com.lhamster.service.OrgOrganizationService;
-import com.lhamster.service.OrgUserOrganizationRelService;
-import com.lhamster.service.OrgUserRoleRelService;
+import com.lhamster.service.*;
 import com.lhamster.util.TencentCOSUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +45,7 @@ public class OrganizationFacadeImpl implements OrganizationFacade {
     private final OrgDepartmentService orgDepartmentService;
     private final OrgUserOrganizationRelService orgUserOrganizationRelService;
     private final OrgUserRoleRelService orgUserRoleRelService;
+    private final OrgUserService orgUserService;
 
     @Override
     public Response<String> updateAvatar(File localFile, String filename) {
@@ -280,5 +284,84 @@ public class OrganizationFacadeImpl implements OrganizationFacade {
         organization.setOrganStar(star);
         orgOrganizationService.updateById(organization);
         return new Response(Boolean.TRUE, "社团星级设置成功");
+    }
+
+    @Override
+    public Response<List<OrgOrganizationListInfoResponse>> page(OrganizationPageRequest organizationPageRequest) {
+        String orderField = null;
+        // 1:最新；2:星级
+        if (organizationPageRequest.getSortBy().equals(1)) {
+            orderField = "create_at";
+        }
+        if (organizationPageRequest.getSortBy().equals(2)) {
+            orderField = "organ_star";
+        }
+        QueryWrapper<OrgOrganization> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("organ_status", organizationPageRequest.getStatus()).orderByDesc(orderField);
+        if (StrUtil.isNotBlank(organizationPageRequest.getName())) {
+            queryWrapper.like("organ_name", organizationPageRequest.getName());
+        }
+        Page<OrgOrganization> page = orgOrganizationService.page(new Page<>(organizationPageRequest.getPageNo(),
+                organizationPageRequest.getPageSize()), queryWrapper);
+        List<OrgOrganization> records = page.getRecords();
+        List<OrgOrganizationListInfoResponse> resList = new ArrayList<>();
+        records.forEach(record -> {
+            // 查询社长id，并找到对应社长名称
+            String username = orgUserService.getById(orgDepartmentService.getOne(new QueryWrapper<OrgDepartment>()
+                    .eq("dep_organization_id", record.getOrganId())
+                    .eq("dep_name", "社长")).getDepMinisterId()).getUserUsername();
+            resList.add(OrgOrganizationListInfoResponse.builder()
+                    .organAvatar(record.getOrganAvatar())
+                    .organId(record.getOrganId())
+                    .organIntroduction(record.getOrganIntroduction())
+                    .organName(record.getOrganName())
+                    .orgMinisterName(username)
+                    .build());
+        });
+        return new Response<List<OrgOrganizationListInfoResponse>>(Boolean.TRUE, "查询成功", (int) page.getTotal(), resList);
+    }
+
+    @Override
+    public Response<List<OrgOrganizationListInfoResponse>> myPage(MyOrganizationPageRequest myOrganizationPageRequest, Long userId) {
+        com.github.pagehelper.Page<Object> page = PageHelper.startPage(myOrganizationPageRequest.getPageNo(), myOrganizationPageRequest.getPageSize());
+        return orgUserOrganizationRelService.getMyOrganizations(myOrganizationPageRequest, userId);
+    }
+
+    @Override
+    public Response<OrgOrganizationInfoResponse> myOrganizationDetail(Long orgId) {
+        // 查询社团信息
+        OrgOrganization organization = orgOrganizationService.getById(orgId);
+        // 社团图片转集合
+        List<String> pictureList = new ArrayList<>();
+        String detailAvatar = organization.getOrganIntroductionDetailAvatar();
+        while (StrUtil.isNotBlank(detailAvatar)) {
+            if (!detailAvatar.contains(",")) {
+                pictureList.add(detailAvatar);
+                detailAvatar = null;
+                break;
+            }
+            pictureList.add(detailAvatar.substring(0, detailAvatar.indexOf(",")));
+            detailAvatar = detailAvatar.substring(detailAvatar.indexOf(",") + 1);
+        }
+        // 社长
+        OrgUserInfoResponse ministerInfo = orgDepartmentService.getUserInfo(orgId, "社长", true);
+        // 副社长
+        OrgUserInfoResponse vice1 = orgDepartmentService.getUserInfo(orgId, "副社长", true);
+        OrgUserInfoResponse vice2 = orgDepartmentService.getUserInfo(orgId, "副社长", false);
+        // 团支书
+        OrgUserInfoResponse secretary = orgDepartmentService.getUserInfo(orgId, "团支书", true);
+        // 组装透出
+        return new Response<>(Boolean.TRUE, "查询成功", OrgOrganizationInfoResponse.builder()
+                .organAvatar(organization.getOrganAvatar())
+                .organId(organization.getOrganId())
+                .organIntroduction(organization.getOrganIntroduction())
+                .organIntroductionDetail(organization.getOrganIntroductionDetail())
+                .organName(organization.getOrganName())
+                .organStar(organization.getOrganStar())
+                .organIntroductionDetailAvatars(pictureList)
+                .minister(ministerInfo)
+                .secretary(secretary)
+                .viceMinisters(Lists.newArrayList(vice1, vice1))
+                .build());
     }
 }

@@ -2,4 +2,17 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lhamster.mapper.OrgUserOrganizationRelMapper">
 
+    <select id="getMyOrganizations" resultType="com.lhamster.response.OrgOrganizationListInfoResponse">
+        SELECT *
+        FROM `org_user_organization_rel`
+        INNER JOIN `org_organization`
+        ON `rel_organization_id` = `organ_id`
+        <where>
+            rel_user_id = #{userId}
+            <if test="name != null">
+                AND organ_name LIKE concat('%',#{name},'%')
+            </if>
+        </where>
+        order by `create_at` desc
+    </select>
 </mapper>

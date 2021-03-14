@@ -1,6 +1,8 @@
 package com.lhamster.facade;
 
 import com.lhamster.request.*;
+import com.lhamster.response.OrgOrganizationInfoResponse;
+import com.lhamster.response.OrgOrganizationListInfoResponse;
 import com.lhamster.response.result.Response;
 
 import java.io.File;
@@ -38,4 +40,13 @@ public interface OrganizationFacade {
 
     /*设置社团星级*/
     Response star(Long orgId, Integer star, Long userId);
+
+    /*社团信息分页查询*/
+    Response<List<OrgOrganizationListInfoResponse>> page(OrganizationPageRequest organizationPageRequest);
+
+    /*我的社团分页*/
+    Response<List<OrgOrganizationListInfoResponse>> myPage(MyOrganizationPageRequest myOrganizationPageRequest, Long userId);
+
+    /*社团详情*/
+    Response<OrgOrganizationInfoResponse> myOrganizationDetail(Long orgId);
 }

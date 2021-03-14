@@ -1,5 +1,6 @@
 package com.lhamster.response.result;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,6 +14,7 @@ import java.io.Serializable;
  */
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class Response<T> implements Serializable {
     private Boolean result;
     private String msg;
