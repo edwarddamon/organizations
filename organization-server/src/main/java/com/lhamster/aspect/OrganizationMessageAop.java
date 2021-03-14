@@ -1,14 +1,8 @@
 package com.lhamster.aspect;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.lhamster.entity.OrgDepartment;
-import com.lhamster.entity.OrgOrganization;
-import com.lhamster.entity.OrgUserOrganizationRel;
-import com.lhamster.entity.OrgUserRoleRel;
-import com.lhamster.request.CancelOrganizationRequest;
-import com.lhamster.request.CheckOrganizationRequest;
-import com.lhamster.request.CreateOrganizationRequest;
-import com.lhamster.request.OfficeDepartmentRequest;
+import com.lhamster.entity.*;
+import com.lhamster.request.*;
 import com.lhamster.service.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -22,8 +16,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -44,6 +40,7 @@ public class OrganizationMessageAop {
     private final OrgDepartmentService orgDepartmentService;
     private final OrgUserOrganizationRelService orgUserOrganizationRelService;
     private final OrgUserService orgUserService;
+    private final OrgApplicationService orgApplicationService;
 
     /*
      * 给社联主席和所有社联管理员发送消息
@@ -152,5 +149,41 @@ public class OrganizationMessageAop {
         userIds.forEach(userId -> {
             userMessageAop.saveMessage("您所在的社团 [" + organName + "] 已重新判定星级，现在星级为：" + joinPoint.getArgs()[1] + "星级", userId);
         });
+    }
+
+    @ApiOperation(value = "申请入社")
+    @AfterReturning(value = "execution(* com.lhamster.facadeImpl.OrganizationFacadeImpl.apply(..))")
+    public void apply(JoinPoint joinPoint) {
+        Long orgId = ((OrgApplicationRequest) joinPoint.getArgs()[0]).getOrgId();
+        // 获取社团名称
+        String organName = orgOrganizationService.getById(orgId).getOrganName();
+        // 通知当前登录用户申请
+        userMessageAop.saveMessage("您已申请加入 [" + organName + "] ,请等待社团管理员审核", (Long) joinPoint.getArgs()[1]);
+        // 通知社团管理员
+        List<OrgDepartment> departments = orgDepartmentService.list(new QueryWrapper<OrgDepartment>()
+                .eq("dep_organization_id", orgId)
+                .in("dep_name", "社长", "副社长", "团支书"));
+        departments.forEach(dep -> {
+            if (Objects.nonNull(dep.getDepMinisterId())) {
+                userMessageAop.saveMessage(orgUserService.getById((Long) joinPoint.getArgs()[1]).getUserUsername() + " 申请加入 [" + organName + "]", dep.getDepMinisterId());
+            }
+            if (Objects.nonNull(dep.getDepViceMinisterId())) {
+                userMessageAop.saveMessage(orgUserService.getById((Long) joinPoint.getArgs()[1]).getUserUsername() + " 申请加入 [" + organName + "]", dep.getDepViceMinisterId());
+            }
+        });
+    }
+
+    @ApiOperation(value = "审批入社")
+    @AfterReturning(value = "execution(* com.lhamster.facadeImpl.OrganizationFacadeImpl.judge(..))")
+    public void judge(JoinPoint joinPoint) {
+        OrgJudgeApplicationRequest judgeApplicationRequest = (OrgJudgeApplicationRequest) joinPoint.getArgs()[0];
+        OrgApplication application = orgApplicationService.getById(judgeApplicationRequest.getAppId());
+        String organName = orgOrganizationService.getById(application.getAppOrgId()).getOrganName();
+        // 通知被审批用户审批结果
+        if (judgeApplicationRequest.getRes()) {
+            userMessageAop.saveMessage("您申请加入 [" + organName + "] 已通过管理员审核", application.getAppUserId());
+        } else {
+            userMessageAop.saveMessage("您申请加入 [" + organName + "] 已被管理员拒绝", application.getAppUserId());
+        }
     }
 }

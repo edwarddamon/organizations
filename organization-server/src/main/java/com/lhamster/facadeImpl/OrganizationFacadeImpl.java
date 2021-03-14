@@ -6,10 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.pagehelper.PageHelper;
 import com.google.common.collect.Lists;
-import com.lhamster.entity.OrgDepartment;
-import com.lhamster.entity.OrgOrganization;
-import com.lhamster.entity.OrgUserOrganizationRel;
-import com.lhamster.entity.OrgUserRoleRel;
+import com.lhamster.entity.*;
 import com.lhamster.facade.OrganizationFacade;
 import com.lhamster.request.*;
 import com.lhamster.response.OrgOrganizationInfoResponse;
@@ -46,6 +43,7 @@ public class OrganizationFacadeImpl implements OrganizationFacade {
     private final OrgUserOrganizationRelService orgUserOrganizationRelService;
     private final OrgUserRoleRelService orgUserRoleRelService;
     private final OrgUserService orgUserService;
+    private final OrgApplicationService orgApplicationService;
 
     @Override
     public Response<String> updateAvatar(File localFile, String filename) {
@@ -363,5 +361,42 @@ public class OrganizationFacadeImpl implements OrganizationFacade {
                 .secretary(secretary)
                 .viceMinisters(Lists.newArrayList(vice1, vice1))
                 .build());
+    }
+
+    @Override
+    public Response apply(OrgApplicationRequest orgApplicationRequest, Long userId) {
+        orgApplicationService.save(OrgApplication.builder()
+                .appUserId(userId)
+                .appApplicationReason(orgApplicationRequest.getReason())
+                .appOrgId(orgApplicationRequest.getOrgId())
+                .appStatus("undetermined")
+                .createAt(LocalDateTime.now())
+                .build());
+        return new Response(Boolean.TRUE, "申请成功，请等待神团管理人员审批");
+    }
+
+    @Override
+    public Response judge(OrgJudgeApplicationRequest orgJudgeApplicationRequest, Long userId) {
+        OrgApplication application = orgApplicationService.getById(orgJudgeApplicationRequest.getAppId());
+        // 检查当前用户权限
+        this.checkIdentity(String.valueOf(application.getAppOrgId()), userId);
+        // 同意 -> 关系表新建用户
+        if (orgJudgeApplicationRequest.getRes()) {
+            // 申请表状态改为AGREE
+            application.setAppStatus("AGREE");
+            orgUserOrganizationRelService.save(OrgUserOrganizationRel.builder()
+                    .createAt(LocalDateTime.now())
+                    .relUserId(application.getAppUserId())
+                    .relOrganizationId(application.getAppOrgId())
+                    .relRoleId(2L)
+                    .build());
+        } else {
+            // 拒绝 -> 给出理由
+            application.setAppStatus("REFUSE");
+            application.setAppRefuseReason(orgJudgeApplicationRequest.getReason());
+        }
+        application.setUpdateAt(LocalDateTime.now());
+        orgApplicationService.updateById(application);
+        return new Response(Boolean.TRUE, "审批成功");
     }
 }

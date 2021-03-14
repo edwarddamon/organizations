@@ -49,4 +49,10 @@ public interface OrganizationFacade {
 
     /*社团详情*/
     Response<OrgOrganizationInfoResponse> myOrganizationDetail(Long orgId);
+
+    /*申请入社*/
+    Response apply(OrgApplicationRequest orgApplicationRequest, Long userId);
+
+    /*审批学生入社*/
+    Response judge(OrgJudgeApplicationRequest orgJudgeApplicationRequest, Long userId);
 }

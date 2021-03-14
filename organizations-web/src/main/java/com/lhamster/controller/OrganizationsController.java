@@ -169,4 +169,18 @@ public class OrganizationsController {
                          @RequestHeader(JwtTokenUtil.AUTH_HEADER_KEY) String token) {
         return organizationFacade.star(orgId, star, JwtTokenUtil.getUserId(token));
     }
+
+    @PostMapping("/apply")
+    @ApiOperation(value = "申请加入社团")
+    public Response apply(@Validated @RequestBody OrgApplicationRequest orgApplicationRequest,
+                          @RequestHeader(JwtTokenUtil.AUTH_HEADER_KEY) String token) {
+        return organizationFacade.apply(orgApplicationRequest, JwtTokenUtil.getUserId(token));
+    }
+
+    @PostMapping("/judge")
+    @ApiOperation(value = "审批学生入社")
+    public Response apply(@Validated @RequestBody OrgJudgeApplicationRequest orgJudgeApplicationRequest,
+                          @RequestHeader(JwtTokenUtil.AUTH_HEADER_KEY) String token) {
+        return organizationFacade.judge(orgJudgeApplicationRequest, JwtTokenUtil.getUserId(token));
+    }
 }
