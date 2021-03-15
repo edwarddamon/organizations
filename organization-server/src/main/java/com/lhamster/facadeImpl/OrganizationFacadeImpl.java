@@ -9,6 +9,7 @@ import com.google.common.collect.Lists;
 import com.lhamster.entity.*;
 import com.lhamster.facade.OrganizationFacade;
 import com.lhamster.request.*;
+import com.lhamster.response.OrgApplicationListInfoResponse;
 import com.lhamster.response.OrgOrganizationInfoResponse;
 import com.lhamster.response.OrgOrganizationListInfoResponse;
 import com.lhamster.response.OrgUserInfoResponse;
@@ -18,6 +19,7 @@ import com.lhamster.service.*;
 import com.lhamster.util.TencentCOSUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.catalina.Server;
 import org.apache.dubbo.config.annotation.Service;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Isolation;
@@ -27,6 +29,7 @@ import java.io.File;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author Damon_Edward
@@ -398,5 +401,72 @@ public class OrganizationFacadeImpl implements OrganizationFacade {
         application.setUpdateAt(LocalDateTime.now());
         orgApplicationService.updateById(application);
         return new Response(Boolean.TRUE, "审批成功");
+    }
+
+    @Override
+    public Response<List<OrgApplicationListInfoResponse>> applyList(Long orgId, Long userId) {
+        List<OrgApplicationListInfoResponse> applicationListInfoResponses = new ArrayList<>();
+        // orgId不为null，查询orgId对应社团的所有审批申请
+        if (Objects.nonNull(orgId)) {
+            List<OrgApplication> applicationList = orgApplicationService.list(new QueryWrapper<OrgApplication>()
+                    .eq("app_org_id", orgId)
+                    .eq("app_status", "undetermined")
+                    .orderByDesc("create_at"));
+            // 添加对应的用户信息
+            applicationList.forEach(app -> {
+                OrgUser user = orgUserService.getById(app.getAppUserId());
+                applicationListInfoResponses.add(OrgApplicationListInfoResponse.builder()
+                        .appId(app.getAppId())
+                        .appApplicationReason(app.getAppApplicationReason())
+                        .appRefuseReason(app.getAppRefuseReason())
+                        .appStatus(app.getAppStatus())
+                        .appUserId(user.getUserId())
+                        .appUserAvatar(user.getUserAvatar())
+                        .appUserName(user.getUserUsername())
+                        .createAt(app.getCreateAt())
+                        .build());
+            });
+        } else {
+            // orgId为null，查询当前登录用户所有状态的申请
+            List<OrgApplication> applicationList = orgApplicationService.list(new QueryWrapper<OrgApplication>()
+                    .eq("app_user_id", userId)
+                    .orderByDesc("create_at"));
+            // 添加对应的社团信息
+            applicationList.forEach(app -> {
+                OrgOrganization organization = orgOrganizationService.getById(app.getAppOrgId());
+                applicationListInfoResponses.add(OrgApplicationListInfoResponse.builder()
+                        .appId(app.getAppId())
+                        .appApplicationReason(app.getAppApplicationReason())
+                        .appRefuseReason(app.getAppRefuseReason())
+                        .appStatus(app.getAppStatus())
+                        .appOrgAvatar(organization.getOrganAvatar())
+                        .appOrgId(organization.getOrganId())
+                        .appOrgName(organization.getOrganName())
+                        .createAt(app.getCreateAt())
+                        .build());
+            });
+        }
+        return new Response<List<OrgApplicationListInfoResponse>>(Boolean.TRUE, "查询成功", applicationListInfoResponses);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Response quitOrganization(Long orgId, Long userId) {
+        // 判断是否有职位
+        int count = orgDepartmentService.count(new QueryWrapper<OrgDepartment>()
+                .eq("dep_organization_id", orgId)
+                .and(req -> req.eq("dep_minister_id", userId)
+                        .or()
+                        .eq("dep_vice_minister_id", userId)));
+        // 有 -> 无法退出社团
+        if (count > 0) {
+            throw new ServerException(Boolean.FALSE, "您在该社团任职，请先联系社团管理员解除职位");
+        }
+        // 无 -> 解除当前登录用户和社团的关系
+        orgUserOrganizationRelService.remove(new QueryWrapper<OrgUserOrganizationRel>()
+                .eq("rel_organization_id", orgId)
+                .eq("rel_user_id", userId)
+                .eq("rel_role_id", 2));
+        return new Response(Boolean.TRUE, "您已成功退出该社团");
     }
 }

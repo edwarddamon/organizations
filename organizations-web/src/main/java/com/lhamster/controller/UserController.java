@@ -159,4 +159,9 @@ public class UserController {
     public Response cancellation(@RequestHeader(JwtTokenUtil.AUTH_HEADER_KEY) String token) {
         return userFacade.cancellationUser(JwtTokenUtil.getUserId(token));
     }
+
+    @PostMapping("/test")
+    public void test(Date date) {
+        log.info(String.valueOf(date));
+    }
 }

@@ -1,6 +1,7 @@
 package com.lhamster.facade;
 
 import com.lhamster.request.*;
+import com.lhamster.response.OrgApplicationListInfoResponse;
 import com.lhamster.response.OrgOrganizationInfoResponse;
 import com.lhamster.response.OrgOrganizationListInfoResponse;
 import com.lhamster.response.result.Response;
@@ -55,4 +56,10 @@ public interface OrganizationFacade {
 
     /*审批学生入社*/
     Response judge(OrgJudgeApplicationRequest orgJudgeApplicationRequest, Long userId);
+
+    /*入社申请列表*/
+    Response<List<OrgApplicationListInfoResponse>> applyList(Long orgId, Long userId);
+
+    /*退出社团*/
+    Response quitOrganization(Long orgId, Long userId);
 }

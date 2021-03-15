@@ -2,6 +2,7 @@ package com.lhamster.controller;
 
 import com.lhamster.facade.OrganizationFacade;
 import com.lhamster.request.*;
+import com.lhamster.response.OrgApplicationListInfoResponse;
 import com.lhamster.response.OrgOrganizationInfoResponse;
 import com.lhamster.response.exception.ServerException;
 import com.lhamster.response.OrgOrganizationListInfoResponse;
@@ -179,8 +180,23 @@ public class OrganizationsController {
 
     @PostMapping("/judge")
     @ApiOperation(value = "审批学生入社")
-    public Response apply(@Validated @RequestBody OrgJudgeApplicationRequest orgJudgeApplicationRequest,
+    public Response judge(@Validated @RequestBody OrgJudgeApplicationRequest orgJudgeApplicationRequest,
                           @RequestHeader(JwtTokenUtil.AUTH_HEADER_KEY) String token) {
         return organizationFacade.judge(orgJudgeApplicationRequest, JwtTokenUtil.getUserId(token));
+    }
+
+    @GetMapping(value = {"/appList/{orgId}", "/appList"})
+    @ApiOperation(value = "入社申请列表",
+            notes = "传社团id：查询社团待审批的申请；不传社团id：查询当前登录用户的所有审批")
+    public Response<List<OrgApplicationListInfoResponse>> applyList(@PathVariable(value = "orgId", required = false) Long orgId,
+                                                                    @RequestHeader(JwtTokenUtil.AUTH_HEADER_KEY) String token) {
+        return organizationFacade.applyList(orgId, JwtTokenUtil.getUserId(token));
+    }
+
+    @DeleteMapping("/quit/{orgId}")
+    @ApiOperation(value = "退出社团")
+    public Response quit(@PathVariable("orgId") Long orgId,
+                         @RequestHeader(JwtTokenUtil.AUTH_HEADER_KEY) String token) {
+        return organizationFacade.quitOrganization(orgId, JwtTokenUtil.getUserId(token));
     }
 }

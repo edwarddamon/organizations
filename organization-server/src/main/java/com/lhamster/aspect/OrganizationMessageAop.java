@@ -186,4 +186,23 @@ public class OrganizationMessageAop {
             userMessageAop.saveMessage("您申请加入 [" + organName + "] 已被管理员拒绝", application.getAppUserId());
         }
     }
+
+    @ApiOperation(value = "退出社团")
+    @AfterReturning(value = "execution(* com.lhamster.facadeImpl.OrganizationFacadeImpl.quitOrganization(..))")
+    public void quitOrganization(JoinPoint joinPoint) {
+        OrgUser user = orgUserService.getById((Long) joinPoint.getArgs()[1]);
+        OrgOrganization organization = orgOrganizationService.getById((Long) joinPoint.getArgs()[0]);
+        // 通知社团管理员
+        List<OrgDepartment> departments = orgDepartmentService.list(new QueryWrapper<OrgDepartment>()
+                .eq("dep_organization_id", organization.getOrganId())
+                .in("dep_name", "社长", "副社长", "团支书"));
+        departments.forEach(dep -> {
+            if (Objects.nonNull(dep.getDepMinisterId())) {
+                userMessageAop.saveMessage(user.getUserUsername() + " 已退出 [" + organization.getOrganName() + "]", dep.getDepMinisterId());
+            }
+            if (Objects.nonNull(dep.getDepViceMinisterId())) {
+                userMessageAop.saveMessage(user.getUserUsername() + " 已退出 [" + organization.getOrganName() + "]", dep.getDepViceMinisterId());
+            }
+        });
+    }
 }
