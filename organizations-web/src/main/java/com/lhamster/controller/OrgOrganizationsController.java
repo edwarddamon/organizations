@@ -4,6 +4,7 @@ import com.lhamster.facade.OrganizationFacade;
 import com.lhamster.request.*;
 import com.lhamster.response.OrgApplicationListInfoResponse;
 import com.lhamster.response.OrgOrganizationInfoResponse;
+import com.lhamster.response.OrgTransInfoResponse;
 import com.lhamster.response.exception.ServerException;
 import com.lhamster.response.OrgOrganizationListInfoResponse;
 import com.lhamster.response.result.Response;
@@ -20,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.*;
 
 /**
@@ -31,7 +33,7 @@ import java.util.*;
 @RestController
 @Api(value = "社团")
 @RequestMapping(value = "/organizations/web/organization")
-public class OrganizationsController {
+public class OrgOrganizationsController {
     @Reference
     private OrganizationFacade organizationFacade;
 
@@ -198,5 +200,31 @@ public class OrganizationsController {
     public Response quit(@PathVariable("orgId") Long orgId,
                          @RequestHeader(JwtTokenUtil.AUTH_HEADER_KEY) String token) {
         return organizationFacade.quitOrganization(orgId, JwtTokenUtil.getUserId(token));
+    }
+
+    @PostMapping("/fund")
+    @ApiOperation(value = "加减经费", notes = "单位是分")
+    public Response fund(@Validated @RequestBody OrgFundRequest orgFundRequest,
+                         @RequestHeader(JwtTokenUtil.AUTH_HEADER_KEY) String token) {
+        return organizationFacade.fund(orgFundRequest, JwtTokenUtil.getUserId(token));
+    }
+
+    @GetMapping("/fund/{orgId}")
+    @ApiOperation(value = "查询社团经费", notes = "单位是分")
+    public Response<Long> fund(@PathVariable(value = "orgId") Long orgId,
+                               @RequestHeader(JwtTokenUtil.AUTH_HEADER_KEY) String token) {
+        return organizationFacade.getFund(orgId, JwtTokenUtil.getUserId(token));
+    }
+
+    @PostMapping("/fundsPage")
+    @ApiOperation(value = "社费流水分页")
+    public Response<List<OrgTransInfoResponse>> fund(@RequestBody OrgFundTransRequest orgFundTransRequest,
+                                                     @RequestHeader(JwtTokenUtil.AUTH_HEADER_KEY) String token) {
+        try {
+            return organizationFacade.pageTrans(orgFundTransRequest, JwtTokenUtil.getUserId(token));
+        } catch (ParseException e) {
+            e.printStackTrace();
+            throw new ServerException(Boolean.FALSE, "时间格式错误");
+        }
     }
 }

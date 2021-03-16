@@ -2,20 +2,24 @@ package com.lhamster.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+
 import java.time.LocalDateTime;
 import java.io.Serializable;
+
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
  * <p>
- * 
+ *
  * </p>
  *
  * @author Edward
  * @since 2021-03-09
  */
 @Data
+@Builder
 @EqualsAndHashCode(callSuper = false)
 public class OrgTrans implements Serializable {
 
@@ -38,6 +42,11 @@ public class OrgTrans implements Serializable {
      * 当前余额
      */
     private Long traAmount;
+
+    /**
+     * 社团id
+     */
+    private Long traOrgId;
 
     private LocalDateTime createAt;
 

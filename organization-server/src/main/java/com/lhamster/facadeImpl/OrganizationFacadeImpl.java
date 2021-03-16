@@ -9,10 +9,7 @@ import com.google.common.collect.Lists;
 import com.lhamster.entity.*;
 import com.lhamster.facade.OrganizationFacade;
 import com.lhamster.request.*;
-import com.lhamster.response.OrgApplicationListInfoResponse;
-import com.lhamster.response.OrgOrganizationInfoResponse;
-import com.lhamster.response.OrgOrganizationListInfoResponse;
-import com.lhamster.response.OrgUserInfoResponse;
+import com.lhamster.response.*;
 import com.lhamster.response.exception.ServerException;
 import com.lhamster.response.result.Response;
 import com.lhamster.service.*;
@@ -26,6 +23,8 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +46,7 @@ public class OrganizationFacadeImpl implements OrganizationFacade {
     private final OrgUserRoleRelService orgUserRoleRelService;
     private final OrgUserService orgUserService;
     private final OrgApplicationService orgApplicationService;
+    private final OrgTransService orgTransService;
 
     @Override
     public Response<String> updateAvatar(File localFile, String filename) {
@@ -468,5 +468,93 @@ public class OrganizationFacadeImpl implements OrganizationFacade {
                 .eq("rel_user_id", userId)
                 .eq("rel_role_id", 2));
         return new Response(Boolean.TRUE, "您已成功退出该社团");
+    }
+
+    /**
+     * 检查当前用户是否为社长或财务
+     *
+     * @param orgId
+     * @param userId
+     */
+    private void fundCheck(Long orgId, Long userId) {
+        int count = orgDepartmentService.count(new QueryWrapper<OrgDepartment>()
+                .eq("dep_organization_id", orgId)
+                .in("dep_name", "社长", "财务")
+                .eq("dep_minister_id", userId));
+        if (count < 1) {
+            throw new ServerException(Boolean.FALSE, "权限不足");
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Response fund(OrgFundRequest orgFundRequest, Long userId) {
+        // 检查当前登录用户是否为社团社长或财务
+        this.fundCheck(orgFundRequest.getOrgId(), userId);
+        OrgOrganization organization = orgOrganizationService.getById(orgFundRequest.getOrgId());
+        // 剩下的经费
+        Long funds = organization.getOrganFunds();
+        if (funds + orgFundRequest.getFunds() < 0) {
+            throw new ServerException(Boolean.FALSE, "社团经费不足");
+        }
+        funds += orgFundRequest.getFunds();
+        try {
+            // 生成经费流水
+            orgTransService.save(OrgTrans.builder()
+                    .createAt(LocalDateTime.now())
+                    .traChangeAmount(orgFundRequest.getFunds())
+                    .traAmount(funds)
+                    .traReason(orgFundRequest.getReason())
+                    .traOrgId(orgFundRequest.getOrgId())
+                    .build());
+            // 更新社团经费
+            organization.setOrganFunds(funds);
+            organization.setUpdateAt(LocalDateTime.now());
+            orgOrganizationService.updateById(organization);
+            return new Response(Boolean.TRUE, "修改经费成功");
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ServerException(Boolean.FALSE, "修改经费失败");
+        }
+    }
+
+    @Override
+    public Response<Long> getFund(Long orgId, Long userId) {
+        // 检查当前登录用户是否为社团社长或财务
+        this.fundCheck(orgId, userId);
+        return new Response<Long>(Boolean.TRUE, "查询成功", orgOrganizationService.getById(orgId).getOrganFunds());
+    }
+
+    @Override
+    public Response<List<OrgTransInfoResponse>> pageTrans(OrgFundTransRequest orgFundTransRequest, Long userId) throws ParseException {
+        if (log.isDebugEnabled()) {
+            log.debug("[入参：]：{}", orgFundTransRequest);
+        }
+        // 检查当前用户身份
+        this.fundCheck(orgFundTransRequest.getOrgId(), userId);
+        // 返回
+        QueryWrapper<OrgTrans> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("tra_org_id", orgFundTransRequest.getOrgId());
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        if (StrUtil.isNotBlank(orgFundTransRequest.getStartTime())) {
+            queryWrapper.gt("create_at", format.parse(orgFundTransRequest.getStartTime()));
+        }
+        if (StrUtil.isNotBlank(orgFundTransRequest.getEndTime())) {
+            queryWrapper.lt("create_at", format.parse(orgFundTransRequest.getEndTime()));
+        }
+        queryWrapper.orderByDesc("create_at");
+        Page<OrgTrans> page = orgTransService.page(new Page<>(orgFundTransRequest.getPageNo(), orgFundTransRequest.getPageSize()), queryWrapper);
+        // 封装
+        List<OrgTransInfoResponse> infoResponses = new ArrayList<>();
+        page.getRecords().forEach(tran -> {
+            infoResponses.add(OrgTransInfoResponse.builder()
+                    .createAt(tran.getCreateAt())
+                    .traAmount(tran.getTraAmount())
+                    .traChangeAmount(tran.getTraChangeAmount())
+                    .traId(tran.getTraId())
+                    .traReason(tran.getTraReason())
+                    .build());
+        });
+        return new Response<List<OrgTransInfoResponse>>(Boolean.TRUE, "查询成功", (int) page.getTotal(), infoResponses);
     }
 }

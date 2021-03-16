@@ -4,9 +4,11 @@ import com.lhamster.request.*;
 import com.lhamster.response.OrgApplicationListInfoResponse;
 import com.lhamster.response.OrgOrganizationInfoResponse;
 import com.lhamster.response.OrgOrganizationListInfoResponse;
+import com.lhamster.response.OrgTransInfoResponse;
 import com.lhamster.response.result.Response;
 
 import java.io.File;
+import java.text.ParseException;
 import java.util.List;
 
 /**
@@ -62,4 +64,13 @@ public interface OrganizationFacade {
 
     /*退出社团*/
     Response quitOrganization(Long orgId, Long userId);
+
+    /*加减经费*/
+    Response fund(OrgFundRequest orgFundRequest, Long userId);
+
+    /*查询经费*/
+    Response<Long> getFund(Long orgId, Long userId);
+
+    /*经费流水分页*/
+    Response<List<OrgTransInfoResponse>> pageTrans(OrgFundTransRequest orgFundTransRequest, Long userId) throws ParseException;
 }

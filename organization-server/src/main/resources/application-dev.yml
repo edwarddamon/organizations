@@ -17,6 +17,7 @@ mybatis-plus:
 server:
   port: 8084
 
+
   #--------------mysql--------------------
 spring:
   datasource:
@@ -43,3 +44,8 @@ spring:
     lettuce:
       shutdown-timeout: 0
     database: 1 #使用的数据库索引
+
+# 设置日志级别
+logging:
+  level:
+    com.lhamster: debug

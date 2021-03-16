@@ -352,3 +352,6 @@ ALTER TABLE `organizations`.`org_application`
 ALTER TABLE `organizations`.`org_boards`
     DROP COLUMN `boa_org_id`,
     ADD COLUMN `boa_org_id` bigint(20) NULL COMMENT '社团id' AFTER `boa_user_id`;
+
+ALTER TABLE `organizations`.`org_trans`
+    ADD COLUMN `tra_org_id` bigint(20) NULL COMMENT '社团id' AFTER `tra_amount`;
