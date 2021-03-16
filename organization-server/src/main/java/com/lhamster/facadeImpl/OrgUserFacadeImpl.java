@@ -2,6 +2,7 @@ package com.lhamster.facadeImpl;
 
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.lhamster.entity.OrgDepartment;
 import com.lhamster.entity.OrgUser;
 import com.lhamster.entity.OrgUserOrganizationRel;
@@ -27,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.io.File;
+import java.sql.Struct;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -282,5 +284,29 @@ public class OrgUserFacadeImpl implements OrgUserFacade {
         } else {
             throw new ServerException(Boolean.FALSE, "注销账户失败");
         }
+    }
+
+    @Override
+    public Response<List<OrgUserInfoResponse>> user(OrgUserRequest orgUserRequest) {
+        QueryWrapper<OrgUser> queryWrapper = new QueryWrapper<>();
+        if (!StrUtil.hasBlank(orgUserRequest.getUsername())) {
+            queryWrapper.like("user_username", orgUserRequest.getUsername());
+        }
+        queryWrapper.orderByDesc("create_at");
+        // 分页查询
+        Page<OrgUser> page = orgUserService.page(new Page<OrgUser>(orgUserRequest.getPageNo(), orgUserRequest.getPageSize()), queryWrapper);
+        List<OrgUserInfoResponse> responses = new ArrayList<>();
+        page.getRecords().forEach(orgUser -> {
+            responses.add(OrgUserInfoResponse.builder()
+                    .userAvatar(orgUser.getUserAvatar())
+                    .userUsername(orgUser.getUserUsername())
+                    .userSex(orgUser.getUserSex())
+                    .userPhone(orgUser.getUserPhone())
+                    .userQq(orgUser.getUserQq())
+                    .userVx(orgUser.getUserVx())
+                    .userId(orgUser.getUserId())
+                    .build());
+        });
+        return new Response<List<OrgUserInfoResponse>>(Boolean.TRUE, "查询成功", (int) page.getTotal(), responses);
     }
 }

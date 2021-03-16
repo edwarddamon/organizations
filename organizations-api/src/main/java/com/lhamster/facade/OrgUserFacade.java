@@ -1,9 +1,11 @@
 package com.lhamster.facade;
 
 import com.lhamster.request.*;
+import com.lhamster.response.OrgUserInfoResponse;
 import com.lhamster.response.result.Response;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * @author Damon_Edward
@@ -40,4 +42,7 @@ public interface OrgUserFacade {
 
     /*注销当前用户*/
     Response cancellationUser(Long userId);
+
+    /*用户分页*/
+    Response<List<OrgUserInfoResponse>> user(OrgUserRequest orgUserRequest);
 }

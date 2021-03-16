@@ -3,6 +3,7 @@ package com.lhamster.controller;
 import cn.hutool.core.util.StrUtil;
 import com.lhamster.facade.OrgUserFacade;
 import com.lhamster.request.*;
+import com.lhamster.response.OrgUserInfoResponse;
 import com.lhamster.response.exception.ServerException;
 import com.lhamster.response.result.Response;
 import com.lhamster.util.JwtTokenUtil;
@@ -34,6 +35,12 @@ public class OrgUserController {
 
     /*图片格式*/
     private static final List<String> suffix = new ArrayList<>(Arrays.asList(".jpg", ".jpeg", ".png", ".gif"));
+
+    @GetMapping("/user")
+    @ApiOperation(value = "用户分页")
+    public Response<List<OrgUserInfoResponse>> user(@RequestBody OrgUserRequest orgUserRequest) {
+        return userFacade.user(orgUserRequest);
+    }
 
     @PostMapping("/message")
     @ApiOperation(value = "发送验证码", notes = "手机号和类型都不能为空", produces = "application/json")
@@ -157,10 +164,5 @@ public class OrgUserController {
     @ApiOperation(value = "注销当前用户")
     public Response cancellation(@RequestHeader(JwtTokenUtil.AUTH_HEADER_KEY) String token) {
         return userFacade.cancellationUser(JwtTokenUtil.getUserId(token));
-    }
-
-    @PostMapping("/test")
-    public void test(Date date) {
-        log.info(String.valueOf(date));
     }
 }
