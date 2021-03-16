@@ -1,5 +1,6 @@
 package com.lhamster.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -65,6 +66,6 @@ public class OrgApplicationListInfoResponse implements Serializable {
      */
     private String appUserAvatar;
 
-    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createAt;
 }
