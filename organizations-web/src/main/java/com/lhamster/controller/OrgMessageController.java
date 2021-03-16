@@ -1,6 +1,6 @@
 package com.lhamster.controller;
 
-import com.lhamster.facade.MessageFacade;
+import com.lhamster.facade.OrgMessageFacade;
 import com.lhamster.response.OrgMessageInfoResponse;
 import com.lhamster.response.result.Response;
 import com.lhamster.util.JwtTokenUtil;
@@ -23,7 +23,7 @@ import java.util.List;
 @RequestMapping(value = "/organizations/web/message")
 public class OrgMessageController {
     @Reference
-    private MessageFacade messageFacade;
+    private OrgMessageFacade messageFacade;
 
     @GetMapping("/msg")
     @ApiOperation(value = "消息通知列表")

@@ -1,12 +1,11 @@
 package com.lhamster.controller;
 
 import cn.hutool.core.util.StrUtil;
-import com.lhamster.facade.UserFacade;
+import com.lhamster.facade.OrgUserFacade;
 import com.lhamster.request.*;
 import com.lhamster.response.exception.ServerException;
 import com.lhamster.response.result.Response;
 import com.lhamster.util.JwtTokenUtil;
-import com.lhamster.util.TencentCOSUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -29,9 +28,9 @@ import java.util.*;
 @RestController
 @Api(value = "用户")
 @RequestMapping(value = "/organizations/web/user")
-public class UserController {
+public class OrgUserController {
     @Reference
-    private UserFacade userFacade;
+    private OrgUserFacade userFacade;
 
     /*图片格式*/
     private static final List<String> suffix = new ArrayList<>(Arrays.asList(".jpg", ".jpeg", ".png", ".gif"));

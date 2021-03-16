@@ -27,7 +27,7 @@ import java.time.LocalDateTime;
 @Api(value = "用户模块通知")
 @RequiredArgsConstructor
 @Transactional(rollbackFor = Exception.class)
-public class UserMessageAop {
+public class OrgUserMessageAop {
     private final OrgMessageService orgMessageService;
     private final OrgUserMapper orgUserMapper;
 
@@ -45,7 +45,7 @@ public class UserMessageAop {
     }
 
     @ApiOperation(value = "手机验证码重置密码通知")
-    @AfterReturning(value = "execution(* com.lhamster.facadeImpl.UserFacadeImpl.resetPassword(..))")
+    @AfterReturning(value = "execution(* com.lhamster.facadeImpl.OrgUserFacadeImpl.resetPassword(..))")
     private void resetPasswordAop(JoinPoint joinPoint) {
         // 通知表插入数据
         Long userId = orgUserMapper
@@ -56,14 +56,14 @@ public class UserMessageAop {
     }
 
     @ApiOperation(value = "修改密码")
-    @AfterReturning(value = "execution(* com.lhamster.facadeImpl.UserFacadeImpl.changePassword(..))")
+    @AfterReturning(value = "execution(* com.lhamster.facadeImpl.OrgUserFacadeImpl.changePassword(..))")
     private void changePassword(JoinPoint joinPoint) {
         // 通知表插入数据
         saveMessage("密码修改成功", (Long) joinPoint.getArgs()[1]);
     }
 
     @ApiOperation(value = "更新用户信息")
-    @AfterReturning(value = "execution(* com.lhamster.facadeImpl.UserFacadeImpl.updateUser(..))")
+    @AfterReturning(value = "execution(* com.lhamster.facadeImpl.OrgUserFacadeImpl.updateUser(..))")
     private void updateUser(JoinPoint joinPoint) {
         // 通知表插入数据
         saveMessage("用户信息更新成功", (Long) joinPoint.getArgs()[1]);

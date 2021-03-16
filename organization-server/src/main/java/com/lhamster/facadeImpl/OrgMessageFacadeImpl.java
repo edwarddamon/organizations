@@ -3,7 +3,7 @@ package com.lhamster.facadeImpl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.google.common.collect.Lists;
 import com.lhamster.entity.OrgMessage;
-import com.lhamster.facade.MessageFacade;
+import com.lhamster.facade.OrgMessageFacade;
 import com.lhamster.response.OrgMessageInfoResponse;
 import com.lhamster.response.exception.ServerException;
 import com.lhamster.response.result.Response;
@@ -27,7 +27,7 @@ import java.util.Objects;
 @Service
 @Component
 @RequiredArgsConstructor
-public class MessageFacadeImpl implements MessageFacade {
+public class OrgMessageFacadeImpl implements OrgMessageFacade {
     private final OrgMessageService orgMessageService;
 
     @Override

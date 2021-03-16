@@ -13,7 +13,7 @@ import com.lhamster.service.OrgUserOrganizationRelService;
 import com.lhamster.service.OrgUserRoleRelService;
 import com.lhamster.util.JwtTokenUtil;
 import com.lhamster.util.SmsUtils;
-import com.lhamster.facade.UserFacade;
+import com.lhamster.facade.OrgUserFacade;
 import com.lhamster.response.exception.ServerException;
 import com.lhamster.response.result.Response;
 import com.lhamster.service.OrgUserService;
@@ -39,7 +39,7 @@ import java.util.*;
 @Component
 @Service
 @RequiredArgsConstructor
-public class UserFacadeImpl implements UserFacade {
+public class OrgUserFacadeImpl implements OrgUserFacade {
     private final OrgUserService orgUserService;
     private final OrgUserOrganizationRelService orgUserOrganizationRelService;
     private final OrgDepartmentService orgDepartmentService;

@@ -14,7 +14,7 @@ import java.util.List;
  * @version 1.0
  * @date 2021/3/13
  */
-public interface DepartmentFacade {
+public interface OrgDepartmentFacade {
     /*创建部门*/
     Response createDepaetment(CreateDepartmentRequest createDepartmentRequest, Long userId);
 

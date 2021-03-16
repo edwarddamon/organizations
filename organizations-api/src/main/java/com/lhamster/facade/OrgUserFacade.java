@@ -10,7 +10,7 @@ import java.io.File;
  * @version 1.0
  * @date 2021/3/9
  */
-public interface UserFacade {
+public interface OrgUserFacade {
     /*检查手机号是否已存在*/
     Boolean checkPhone(String phone);
 

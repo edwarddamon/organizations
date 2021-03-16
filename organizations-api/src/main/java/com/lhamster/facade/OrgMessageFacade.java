@@ -10,7 +10,7 @@ import java.util.List;
  * @version 1.0
  * @date 2021/3/15
  */
-public interface MessageFacade {
+public interface OrgMessageFacade {
     /*消息列表*/
     Response<List<OrgMessageInfoResponse>> msgList(Long userId);
 

@@ -16,7 +16,6 @@ import java.io.Serializable;
  * @date 2021/3/14
  */
 @Data
-@Builder
 @ApiModel(value = "分页入参")
 @NoArgsConstructor
 @AllArgsConstructor

@@ -16,7 +16,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -34,7 +33,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
 public class OrganizationMessageAop {
-    private final UserMessageAop userMessageAop;
+    private final OrgUserMessageAop userMessageAop;
     private final OrgUserRoleRelService orgUserRoleRelService;
     private final OrgOrganizationService orgOrganizationService;
     private final OrgDepartmentService orgDepartmentService;
@@ -95,7 +94,7 @@ public class OrganizationMessageAop {
     }
 
     @ApiOperation(value = "任职和解雇通知")
-    @AfterReturning(value = "execution(* com.lhamster.facadeImpl.DepartmentFacadeImpl.office(..))")
+    @AfterReturning(value = "execution(* com.lhamster.facadeImpl.OrgDepartmentFacadeImpl.office(..))")
     private void office(JoinPoint joinPoint) {
         OfficeDepartmentRequest joinPointArg = (OfficeDepartmentRequest) joinPoint.getArgs()[0];
         Long userId = joinPointArg.getTargetId();
@@ -119,7 +118,7 @@ public class OrganizationMessageAop {
     }
 
     @ApiOperation(value = "委任下届社长")
-    @AfterReturning(value = "execution(* com.lhamster.facadeImpl.DepartmentFacadeImpl.boss(..))")
+    @AfterReturning(value = "execution(* com.lhamster.facadeImpl.OrgDepartmentFacadeImpl.boss(..))")
     private void boss(JoinPoint joinPoint) {
         OrgOrganization organization = orgOrganizationService.getById((Long) joinPoint.getArgs()[0]);
         // 通知被委任的人

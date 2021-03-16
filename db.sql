@@ -348,3 +348,7 @@ ALTER TABLE `organizations`.`org_organization`
 
 ALTER TABLE `organizations`.`org_application`
     ADD COLUMN `app_org_id` bigint(20) NULL COMMENT '社团id' AFTER `app_refuse_reason`;
+
+ALTER TABLE `organizations`.`org_boards`
+    DROP COLUMN `boa_org_id`,
+    ADD COLUMN `boa_org_id` bigint(20) NULL COMMENT '社团id' AFTER `boa_user_id`;

@@ -1,7 +1,7 @@
 package com.lhamster.controller;
 
 import com.lhamster.entity.OrgDepartment;
-import com.lhamster.facade.DepartmentFacade;
+import com.lhamster.facade.OrgDepartmentFacade;
 import com.lhamster.request.CreateDepartmentRequest;
 import com.lhamster.request.OfficeDepartmentRequest;
 import com.lhamster.request.UpdateDepartmentRequest;
@@ -27,9 +27,9 @@ import java.util.List;
 @RestController
 @Api(value = "部门")
 @RequestMapping(value = "/organizations/web/department")
-public class DepartmentController {
+public class OrgDepartmentController {
     @Reference
-    private DepartmentFacade departmentFacade;
+    private OrgDepartmentFacade departmentFacade;
 
     @GetMapping("/depart/{orgId}")
     @ApiOperation(value = "部门列表")

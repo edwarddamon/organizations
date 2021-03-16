@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.lhamster.entity.OrgDepartment;
 import com.lhamster.entity.OrgUser;
 import com.lhamster.entity.OrgUserOrganizationRel;
-import com.lhamster.facade.DepartmentFacade;
+import com.lhamster.facade.OrgDepartmentFacade;
 import com.lhamster.request.CreateDepartmentRequest;
 import com.lhamster.request.OfficeDepartmentRequest;
 import com.lhamster.request.UpdateDepartmentRequest;
@@ -19,7 +19,6 @@ import com.lhamster.service.OrgUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Service;
-import org.apache.tomcat.jni.Local;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,7 +35,7 @@ import java.util.Objects;
 @Component
 @Service
 @RequiredArgsConstructor
-public class DepartmentFacadeImpl implements DepartmentFacade {
+public class OrgDepartmentFacadeImpl implements OrgDepartmentFacade {
     private final OrgDepartmentService orgDepartmentService;
     private final OrgUserService orgUserService;
     private final OrgUserOrganizationRelService orgUserOrganizationRelService;
