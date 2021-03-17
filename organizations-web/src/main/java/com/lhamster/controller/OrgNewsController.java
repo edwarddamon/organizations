@@ -1,12 +1,10 @@
 package com.lhamster.controller;
 
-import com.lhamster.entity.OrgLimit;
-import com.lhamster.facade.OrgActivityFacade;
-import com.lhamster.request.OrgBoardRequest;
+import com.lhamster.facade.OrgNewsFacade;
+import com.lhamster.request.OrgCommentRequest;
 import com.lhamster.request.OrgCreateActivityRequest;
-import com.lhamster.request.OrgUpdateActivityRequest;
-import com.lhamster.response.OrgActivityInfoResponse;
-import com.lhamster.response.OrgActivityListInfoResponse;
+import com.lhamster.request.OrgCreateNewsRequest;
+import com.lhamster.request.OrgUpdateNewsRequest;
 import com.lhamster.response.exception.ServerException;
 import com.lhamster.response.result.Response;
 import com.lhamster.util.FileUtil;
@@ -22,8 +20,8 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.Objects;
+
 
 /**
  * @author Damon_Edward
@@ -32,43 +30,21 @@ import java.util.Objects;
  */
 @Slf4j
 @RestController
-@Api(value = "活动")
-@RequestMapping(value = "/organizations/web/activity")
-public class OrgActivityController {
+@Api(value = "消息通知")
+@RequestMapping(value = "/organizations/web/news")
+public class OrgNewsController {
     @Reference
-    private OrgActivityFacade orgActivityFacade;
-
-    @GetMapping("/limit")
-    @ApiOperation(value = "限制列表")
-    public Response<List<OrgLimit>> board() {
-        return orgActivityFacade.limit();
-    }
-
-    @GetMapping(value = {"/page", "/page/{name}", "/page/{pageNo}/{pageSize}", "/page/{pageNo}/{pageSize}/{name}"})
-    @ApiOperation(value = "活动分页")
-    public Response<List<OrgActivityListInfoResponse>> activity(@PathVariable(value = "pageNo", required = false) Integer pageNo,
-                                                                @PathVariable(value = "pageSize", required = false) Integer pageSize,
-                                                                @PathVariable(value = "name", required = false) String name) {
-        pageNo = Objects.nonNull(pageNo) ? pageNo : 1;
-        pageSize = Objects.nonNull(pageSize) ? pageSize : 10;
-        return orgActivityFacade.page(pageNo, pageSize, name);
-    }
-
-    @GetMapping("/detail/{actId}")
-    @ApiOperation(value = "活动详情")
-    public Response<OrgActivityInfoResponse> activity(@PathVariable(value = "actId") Long actId) {
-        return orgActivityFacade.detail(actId);
-    }
+    private OrgNewsFacade newsFacade;
 
     @PostMapping("/create")
-    @ApiOperation(value = "创建活动", notes = "社团核心管理人员才可创建")
+    @ApiOperation(value = "发布新闻")
     public Response create(@RequestParam(value = "avatar", required = false) MultipartFile avatar,
-                           @Validated OrgCreateActivityRequest orgCreateActivityRequest,
+                           @Validated OrgCreateNewsRequest orgCreateNewsRequest,
                            @RequestHeader(JwtTokenUtil.AUTH_HEADER_KEY) String token,
                            HttpSession session) {
         if (log.isDebugEnabled()) {
             log.debug("[文件]：{}", avatar);
-            log.debug("[入参]：{}", orgCreateActivityRequest);
+            log.debug("[入参]：{}", orgCreateNewsRequest);
         }
         // 获取新文件名
         String fileName = null;
@@ -85,19 +61,18 @@ public class OrgActivityController {
                 throw new ServerException(Boolean.FALSE, "文件写入磁盘失败");
             }
         }
-        return orgActivityFacade.create(localFile, fileName, orgCreateActivityRequest, JwtTokenUtil.getUserId(token));
+        return newsFacade.create(localFile, fileName, orgCreateNewsRequest, JwtTokenUtil.getUserId(token));
     }
 
-
     @PostMapping("/update")
-    @ApiOperation(value = "更新活动", notes = "社团核心管理人员才可更新")
-    public Response create(@RequestParam(value = "newAvatar", required = false) MultipartFile newAvatar,
-                           @Validated OrgUpdateActivityRequest orgUpdateActivityRequest,
+    @ApiOperation(value = "更新新闻")
+    public Response update(@RequestParam(value = "newAvatar", required = false) MultipartFile newAvatar,
+                           @Validated OrgUpdateNewsRequest orgUpdateNewsRequest,
                            @RequestHeader(JwtTokenUtil.AUTH_HEADER_KEY) String token,
                            HttpSession session) {
         if (log.isDebugEnabled()) {
             log.debug("[文件]：{}", newAvatar);
-            log.debug("[入参]：{}", orgUpdateActivityRequest);
+            log.debug("[入参]：{}", orgUpdateNewsRequest);
         }
         // 获取新文件名
         String fileName = null;
@@ -114,13 +89,20 @@ public class OrgActivityController {
                 throw new ServerException(Boolean.FALSE, "文件写入磁盘失败");
             }
         }
-        return orgActivityFacade.update(localFile, fileName, orgUpdateActivityRequest, JwtTokenUtil.getUserId(token));
+        return newsFacade.update(localFile, fileName, orgUpdateNewsRequest, JwtTokenUtil.getUserId(token));
     }
 
-    @DeleteMapping("/delete/{actId}")
-    @ApiOperation(value = "取消活动", notes = "社团核心管理人员才可取消")
-    public Response delete(@PathVariable("actId") Long actId,
-                           @RequestHeader(JwtTokenUtil.AUTH_HEADER_KEY) String token) {
-        return orgActivityFacade.delete(actId, JwtTokenUtil.getUserId(token));
+    @PostMapping("/comment")
+    @ApiOperation(value = "发布新闻评论")
+    public Response comment(@Validated @RequestBody OrgCommentRequest orgCommentRequest,
+                            @RequestHeader(JwtTokenUtil.AUTH_HEADER_KEY) String token) {
+        return newsFacade.comment(orgCommentRequest, JwtTokenUtil.getUserId(token));
+    }
+
+    @PatchMapping("/comment/{comId}/{status}")
+    @ApiOperation(value = "用户点赞评论", notes = "comId传评论id，status传点赞和取消点赞（true点赞;false取消点赞）")
+    public Response comment(@PathVariable("comId") Long comId,
+                            @PathVariable("status") Boolean status) {
+        return newsFacade.good(comId, status);
     }
 }

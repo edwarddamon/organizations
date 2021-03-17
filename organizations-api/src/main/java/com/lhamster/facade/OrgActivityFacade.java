@@ -29,7 +29,7 @@ public interface OrgActivityFacade {
     Response delete(Long actId, Long userId);
 
     /*分页*/
-    Response<List<OrgActivityListInfoResponse>> page(Integer pageNo, Integer pageSize);
+    Response<List<OrgActivityListInfoResponse>> page(Integer pageNo, Integer pageSize, String name);
 
     /*活动详情*/
     Response<OrgActivityInfoResponse> detail(Long actId);

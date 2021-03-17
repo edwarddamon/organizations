@@ -8,10 +8,7 @@ import com.lhamster.entity.OrgDepartment;
 import com.lhamster.entity.OrgLimit;
 import com.lhamster.entity.OrgOrganization;
 import com.lhamster.facade.OrgActivityFacade;
-import com.lhamster.facade.OrgBoardFacade;
 import com.lhamster.facade.OrganizationFacade;
-import com.lhamster.mapper.OrgActivityMapper;
-import com.lhamster.mapper.OrgLimitMapper;
 import com.lhamster.request.OrgCreateActivityRequest;
 import com.lhamster.request.OrgFundRequest;
 import com.lhamster.request.OrgUpdateActivityRequest;
@@ -26,7 +23,6 @@ import com.lhamster.service.OrgOrganizationService;
 import com.lhamster.util.TencentCOSUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.catalina.Server;
 import org.apache.dubbo.config.annotation.Service;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,7 +31,6 @@ import java.io.File;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -211,10 +206,13 @@ public class OrgActivityFacadeImpl implements OrgActivityFacade {
     }
 
     @Override
-    public Response<List<OrgActivityListInfoResponse>> page(Integer pageNo, Integer pageSize) {
+    public Response<List<OrgActivityListInfoResponse>> page(Integer pageNo, Integer pageSize, String name) {
         List<OrgActivityListInfoResponse> responses = new ArrayList<>();
-        Page<OrgActivity> page = orgActivityService.page(new Page<>(pageNo, pageSize),
-                new QueryWrapper<OrgActivity>().orderByDesc("create_at", "update_at"));
+        QueryWrapper<OrgActivity> wrapper = new QueryWrapper<OrgActivity>().orderByDesc("create_at", "update_at");
+        if (StrUtil.isNotBlank(name)) {
+            wrapper.like("act_name", name);
+        }
+        Page<OrgActivity> page = orgActivityService.page(new Page<>(pageNo, pageSize), wrapper);
         page.getRecords().forEach(orgActivity -> {
             // 获取社团名
             OrgOrganization organization = orgOrganizationService.getById(orgActivity.getActOrganizationId());

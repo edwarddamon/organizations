@@ -47,7 +47,7 @@ public class OrgActivityMessageAop {
      * @param msg
      * @param orgId
      */
-    private void messageAllOrganizationUser(String msg, Long orgId) {
+    public void messageAllOrganizationUser(String msg, Long orgId) {
         // 获取所有用户id
         orgUserOrganizationRelService.list(new QueryWrapper<OrgUserOrganizationRel>()
                 .eq("rel_organization_id", orgId)
