@@ -44,7 +44,7 @@ public class OrgBoardFacadeImpl implements OrgBoardFacade {
      * @param orgId
      * @param userId
      */
-    private void checkIdentity(Long orgId, Long userId) {
+    public void checkIdentity(Long orgId, Long userId) {
         // 检查当前用户身份
         int count = orgDepartmentService.count(new QueryWrapper<OrgDepartment>()
                 .eq("dep_organization_id", orgId)
@@ -131,12 +131,15 @@ public class OrgBoardFacadeImpl implements OrgBoardFacade {
             resList.add(OrgBoardLIstInfoResponse.builder()
                     .boaContent(orgBoards.getBoaContent())
                     .boaId(orgBoards.getBoaId())
-                    .boaViews(orgBoards.getBoaViews())
+                    .boaViews(orgBoards.getBoaViews() + 1)
                     .createAt(orgBoards.getCreateAt())
                     .boaUserAvatar(user.getUserAvatar())
                     .boaUserId(user.getUserId())
                     .boaUserName(user.getUserUsername())
                     .build());
+            // 浏览量+1
+            orgBoards.setBoaViews(orgBoards.getBoaViews() + 1);
+            orgBoardsService.updateById(orgBoards);
         } else {
             throw new ServerException(Boolean.FALSE, "入参异常");
         }

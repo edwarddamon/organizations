@@ -1,30 +1,23 @@
-package com.lhamster.entity;
+package com.lhamster.response;
 
-import java.time.LocalDateTime;
-import java.io.Serializable;
-
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.lhamster.entity.OrgLimit;
+import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
+
+import java.io.Serializable;
+import java.time.LocalDateTime;
 
 /**
- * <p>
- *
- * </p>
- *
- * @author Edward
- * @since 2021-03-09
+ * @author Damon_Edward
+ * @version 1.0
+ * @date 2021/3/17
  */
+@ApiModel(value = "活动详情透出")
 @Data
 @Builder
-@EqualsAndHashCode(callSuper = false)
-public class OrgActivity implements Serializable {
-
-    private static final long serialVersionUID = 1L;
-
-    @TableId(value = "act_id", type = IdType.AUTO)
+public class OrgActivityInfoResponse implements Serializable {
     private Long actId;
 
     /**
@@ -40,11 +33,13 @@ public class OrgActivity implements Serializable {
     /**
      * 开始时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime actBeginTime;
 
     /**
      * 结束时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime actEndTime;
 
     /**
@@ -68,22 +63,15 @@ public class OrgActivity implements Serializable {
     private Long actOrganizationId;
 
     /**
-     * 人员限制id
+     * 社团名
      */
-    private Long actLimitUserId;
+    private String actOrganizationName;
 
     /**
-     * 经费
+     * 人员限制id
      */
-    private Long actFunds;
+    private OrgLimit orgLimit;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createAt;
-
-    private String createBy;
-
-    private LocalDateTime updateAt;
-
-    private String updateBy;
-
-
 }

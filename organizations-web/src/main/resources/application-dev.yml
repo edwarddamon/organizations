@@ -12,3 +12,8 @@ server:
 # swagger开关
 swagger:
   enabled: true
+
+# 日志等级
+logging:
+  level:
+    com.lhamster: debug

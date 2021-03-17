@@ -355,3 +355,13 @@ ALTER TABLE `organizations`.`org_boards`
 
 ALTER TABLE `organizations`.`org_trans`
     ADD COLUMN `tra_org_id` bigint(20) NULL COMMENT '社团id' AFTER `tra_amount`;
+
+ALTER TABLE `organizations`.`org_activity`
+    DROP COLUMN `act_limit_org_ids`;
+
+ALTER TABLE `organizations`.`org_activity`
+    DROP COLUMN `act_limit_user_id`,
+    ADD COLUMN `act_limit_user_id` bigint(20) NULL COMMENT '限制id' AFTER `act_organization_id`;
+
+ALTER TABLE `organizations`.`org_activity`
+    ADD COLUMN `act_funds` bigint(20) NULL COMMENT '需要的经费' AFTER `act_limit_user_id`;

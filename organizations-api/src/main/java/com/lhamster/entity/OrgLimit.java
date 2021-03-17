@@ -2,13 +2,15 @@ package com.lhamster.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+
 import java.io.Serializable;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
  * <p>
- * 
+ *
  * </p>
  *
  * @author Edward
@@ -27,6 +29,4 @@ public class OrgLimit implements Serializable {
      * 限制名称
      */
     private String limName;
-
-
 }
