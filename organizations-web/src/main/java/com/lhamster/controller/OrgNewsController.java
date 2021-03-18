@@ -1,10 +1,9 @@
 package com.lhamster.controller;
 
 import com.lhamster.facade.OrgNewsFacade;
-import com.lhamster.request.OrgCommentRequest;
-import com.lhamster.request.OrgCreateActivityRequest;
-import com.lhamster.request.OrgCreateNewsRequest;
-import com.lhamster.request.OrgUpdateNewsRequest;
+import com.lhamster.request.*;
+import com.lhamster.response.OrgNewsInfoResponse;
+import com.lhamster.response.OrgNewsListInfoResponse;
 import com.lhamster.response.exception.ServerException;
 import com.lhamster.response.result.Response;
 import com.lhamster.util.FileUtil;
@@ -20,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Objects;
 
 
@@ -35,6 +35,24 @@ import java.util.Objects;
 public class OrgNewsController {
     @Reference
     private OrgNewsFacade newsFacade;
+
+    @GetMapping("/detail/{newId}")
+    @ApiOperation(value = "新闻详情")
+    public Response<OrgNewsInfoResponse> detail(@PathVariable("newId") Long newId) {
+        if (log.isDebugEnabled()) {
+            log.debug("[入参]：{}", newId);
+        }
+        return newsFacade.detail(newId);
+    }
+
+    @PostMapping("/page")
+    @ApiOperation(value = "新闻分页")
+    public Response<List<OrgNewsListInfoResponse>> page(@RequestBody OrgNewsPageRequest orgNewsPageRequest) {
+        if (log.isDebugEnabled()) {
+            log.debug("[入参]：{}", orgNewsPageRequest);
+        }
+        return newsFacade.page(orgNewsPageRequest);
+    }
 
     @PostMapping("/create")
     @ApiOperation(value = "发布新闻")
@@ -104,5 +122,12 @@ public class OrgNewsController {
     public Response comment(@PathVariable("comId") Long comId,
                             @PathVariable("status") Boolean status) {
         return newsFacade.good(comId, status);
+    }
+
+    @DeleteMapping("/new/{newId}")
+    @ApiOperation(value = "新闻删除", notes = "新闻下面的所有评论都会一起删除")
+    public Response delete(@PathVariable("newId") Long newId,
+                           @RequestHeader(JwtTokenUtil.AUTH_HEADER_KEY) String token) {
+        return newsFacade.delete(newId, JwtTokenUtil.getUserId(token));
     }
 }
