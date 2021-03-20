@@ -1,0 +1,51 @@
+dubbo:
+  application:
+    name: edward-organizations-server #服务名（用于dubbo识别）
+  protocol:
+    port: 20880 #dubbo启动的端口
+    name: dubbo
+  registry:
+    address: www.lhamster.cn:2181 #zookeeper启动的ip地址+端口号
+    protocol: zookeeper
+  provider:
+    timeout: 5000 #超时时间
+
+mybatis-plus:
+  config-location: classpath:mybatis/mybatis-config.xml #指定全局配置文件位置
+  mapper-locations: classpath:mybatis/mapper/*.xml #指定mapper映射文件位置
+
+server:
+  port: 8084
+
+
+  #--------------mysql--------------------
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://www.lhamster.cn:3306/organizations?serverTimezone=GMT%2B8
+    username: root
+    password: CjB10315114
+    #设置为druid数据源
+    type: com.alibaba.druid.pool.DruidDataSource
+
+  #--------------redis--------------------
+  redis:
+    # 指定redis所在服务器ip
+    host: www.lhamster.cn
+    port: 6379
+    jedis:
+      pool:
+        #最大连接数
+        max-active: 120
+        #最大空闲
+        max-idle: 200
+        #最小空闲
+        min-idle: 0
+    lettuce:
+      shutdown-timeout: 0
+    database: 1 #使用的数据库索引
+
+# 设置日志级别
+logging:
+  level:
+    com.lhamster: info

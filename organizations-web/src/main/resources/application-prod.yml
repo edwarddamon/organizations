@@ -1,0 +1,19 @@
+dubbo:
+  application:
+    name: edward-organizations-web #服务名（用于dubbo识别）
+  registry:
+    address: www.lhamster.cn:2181 #zookeeper启动的ip地址+端口号
+    protocol: zookeeper
+  consumer:
+    timeout: 5000 #超时时间
+server:
+  port: 8082
+
+# swagger开关
+swagger:
+  enabled: false
+
+# 日志等级
+logging:
+  level:
+    com.lhamster: info
