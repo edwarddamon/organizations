@@ -3,8 +3,8 @@
 
 # 分支说明
 - feature：本地开发（dev配置文件）
-- release1.0：发布版本（dev、test、prod配置文件）
-- master：源码最全（dev.test.prod配置文件）
+- release：发布版本（dev、test、prod配置文件）
+- master：源码最全（dev、test、prod配置文件）
 
 # 技术栈
 - dubbo（apache） 版本：2.7.3
