@@ -1,7 +1,7 @@
 # organizations
 智慧社团（毕业设计）
 
-#分支说明
+# 分支说明
 - feature：本地开发（dev配置文件）
 - release1.0：发布版本（dev、test、prod配置文件）
 - master：源码最全（dev.test.prod配置文件）
