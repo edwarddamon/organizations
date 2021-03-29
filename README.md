@@ -1,6 +1,9 @@
 # organizations
 智慧社团（毕业设计）
 
+# 前端地址
+gitee：https://gitee.com/edwarddamon/smart-campus-uniapp
+
 # 技术栈
 - dubbo（apache） 版本：2.7.3
 - zookeeper 版本：3.4.11
