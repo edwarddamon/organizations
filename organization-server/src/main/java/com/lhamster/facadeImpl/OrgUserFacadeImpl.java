@@ -3,21 +3,20 @@ package com.lhamster.facadeImpl;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.github.pagehelper.PageHelper;
 import com.lhamster.entity.OrgDepartment;
 import com.lhamster.entity.OrgUser;
 import com.lhamster.entity.OrgUserOrganizationRel;
 import com.lhamster.entity.OrgUserRoleRel;
+import com.lhamster.facade.OrgRoleFacade;
 import com.lhamster.request.*;
 import com.lhamster.response.OrgUserInfoResponse;
-import com.lhamster.service.OrgDepartmentService;
-import com.lhamster.service.OrgUserOrganizationRelService;
-import com.lhamster.service.OrgUserRoleRelService;
+import com.lhamster.service.*;
 import com.lhamster.util.JwtTokenUtil;
 import com.lhamster.util.SmsUtils;
 import com.lhamster.facade.OrgUserFacade;
 import com.lhamster.response.exception.ServerException;
 import com.lhamster.response.result.Response;
-import com.lhamster.service.OrgUserService;
 import com.lhamster.util.TencentCOSUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -97,6 +96,7 @@ public class OrgUserFacadeImpl implements OrgUserFacade {
                         orgUser.setUserAvatar(avatar);
                         orgUser.setUserPassword(registerRequest.getPassword());
                         orgUser.setUserPhone(registerRequest.getPhone());
+                        orgUser.setUserStatus("NORMAL");
                         orgUser.setCreateAt(LocalDateTime.now());
                         orgUserService.save(orgUser);
                         // 删除redis中的相关信息
@@ -234,6 +234,14 @@ public class OrgUserFacadeImpl implements OrgUserFacade {
     @Override
     public Response getCurrentUser(Long userId) {
         OrgUser orgUser = orgUserService.getById(userId);
+        // 检查当前用户是否为社联主席或社联管理员
+        int count2 = orgUserRoleRelService.count(new QueryWrapper<OrgUserRoleRel>()
+                .eq("rel_user_id", userId)
+                .in("rel_role_id", 3L, 4L));
+        Boolean identity = Boolean.FALSE;
+        if (count2 > 0) {
+            identity = Boolean.TRUE;
+        }
         OrgUserInfoResponse userInfoResponse = OrgUserInfoResponse.builder()
                 .userId(orgUser.getUserId())
                 .userAvatar(orgUser.getUserAvatar())
@@ -242,6 +250,7 @@ public class OrgUserFacadeImpl implements OrgUserFacade {
                 .userQq(orgUser.getUserQq())
                 .userVx(orgUser.getUserVx())
                 .userSex(orgUser.getUserSex())
+                .identity(identity)
                 .build();
         return new Response<OrgUserInfoResponse>(Boolean.TRUE, "获取用户信息成功", userInfoResponse);
     }
@@ -274,16 +283,16 @@ public class OrgUserFacadeImpl implements OrgUserFacade {
         // 如果都不是则允许注销
         OrgUser orgUser = orgUserService.getById(userId);
         String avatar = orgUser.getUserAvatar();
-        boolean res = orgUserService.removeById(userId);
-        if (res) {
-            String oldFileName = avatar.substring(avatar.lastIndexOf("/") + 1);
-            if (oldFileName.length() > 6) { // 默认的图标不删除
-                TencentCOSUtil.deletefile("avatar/" + oldFileName);
-            }
-            return new Response(Boolean.TRUE, "注销账户成功");
-        } else {
-            throw new ServerException(Boolean.FALSE, "注销账户失败");
+        // 更改用户状态
+        orgUser.setUserPhone("-1");
+        orgUser.setUserStatus("CANCEL");
+        String oldFileName = avatar.substring(avatar.lastIndexOf("/") + 1);
+        if (oldFileName.length() > 6) { // 默认的图标不删除
+            TencentCOSUtil.deletefile("avatar/" + oldFileName);
         }
+        orgUser.setUserAvatar(null);
+        boolean res = orgUserService.updateById(orgUser);
+        return new Response(Boolean.TRUE, "注销账户成功");
     }
 
     @Override
@@ -308,5 +317,35 @@ public class OrgUserFacadeImpl implements OrgUserFacade {
                     .build());
         });
         return new Response<List<OrgUserInfoResponse>>(Boolean.TRUE, "查询成功", (int) page.getTotal(), responses);
+    }
+
+    @Override
+    public Response<List<OrgUserInfoResponse>> userList(OrgUserListRequest orgUserRequest) {
+        com.github.pagehelper.Page<OrgUserInfoResponse> page = PageHelper.startPage(orgUserRequest.getPageNo(), orgUserRequest.getPageSize());
+        List<OrgUserInfoResponse> users = orgUserOrganizationRelService.listMyself(orgUserRequest);
+        return new Response<List<OrgUserInfoResponse>>(Boolean.TRUE, "查询成功", (int) page.getTotal(), users);
+    }
+
+    @Override
+    public Response<List<OrgUserInfoResponse>> list(UserListRequest orgUserRequest) {
+        QueryWrapper<OrgUser> wrapper = new QueryWrapper<>();
+        wrapper.eq("user_status", "NORMAL");
+        if (StrUtil.isNotBlank(orgUserRequest.getUsername())) {
+            wrapper.like("user_username", orgUserRequest.getUsername());
+        }
+        Page<OrgUser> page = orgUserService.page(new Page<>(orgUserRequest.getPageNo(), orgUserRequest.getPageSize()), wrapper);
+        List<OrgUserInfoResponse> userInfoResponseArrayList = new ArrayList<>();
+        page.getRecords().forEach(user -> {
+            userInfoResponseArrayList.add(OrgUserInfoResponse.builder()
+                    .userId(user.getUserId())
+                    .userVx(user.getUserVx())
+                    .userQq(user.getUserQq())
+                    .userPhone(user.getUserPhone())
+                    .userSex(user.getUserSex())
+                    .userUsername(user.getUserUsername())
+                    .userAvatar(user.getUserAvatar())
+                    .build());
+        });
+        return new Response<List<OrgUserInfoResponse>>(Boolean.TRUE, "查询成功", (int) page.getTotal(), userInfoResponseArrayList);
     }
 }

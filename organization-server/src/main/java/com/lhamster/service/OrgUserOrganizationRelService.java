@@ -3,7 +3,9 @@ package com.lhamster.service;
 import com.lhamster.entity.OrgUserOrganizationRel;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lhamster.request.MyOrganizationPageRequest;
+import com.lhamster.request.OrgUserListRequest;
 import com.lhamster.response.OrgOrganizationListInfoResponse;
+import com.lhamster.response.OrgUserInfoResponse;
 import com.lhamster.response.result.Response;
 
 import java.util.List;
@@ -19,4 +21,6 @@ import java.util.List;
 public interface OrgUserOrganizationRelService extends IService<OrgUserOrganizationRel> {
 
     Response<List<OrgOrganizationListInfoResponse>> getMyOrganizations(MyOrganizationPageRequest myOrganizationPageRequest, Long userId);
+
+    List<OrgUserInfoResponse> listMyself(OrgUserListRequest orgUserRequest);
 }

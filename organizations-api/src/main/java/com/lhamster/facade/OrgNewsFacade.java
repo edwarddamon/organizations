@@ -37,4 +37,7 @@ public interface OrgNewsFacade {
 
     /*删除新闻*/
     Response delete(Long newId, Long userId);
+
+    /*指定社团的新闻列表*/
+    Response<List<OrgNewsListInfoResponse>> list(Long orgId);
 }

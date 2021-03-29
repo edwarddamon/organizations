@@ -226,4 +226,27 @@ public class OrgNewsFacadeImpl implements OrgNewsFacade {
         orgNewsService.removeById(news.getNewId());
         return new Response(Boolean.TRUE, "删除新闻成功");
     }
+
+    @Override
+    public Response<List<OrgNewsListInfoResponse>> list(Long orgId) {
+        List<OrgNews> news = orgNewsService.list(new QueryWrapper<OrgNews>()
+                .eq("new_organization_id", orgId)
+                .orderByDesc("create_at"));
+        List<OrgNewsListInfoResponse> responses = new ArrayList<>();
+        news.forEach(orgNews -> {
+            // 获取社团信息
+            OrgOrganization organization = orgOrganizationService.getById(orgNews.getNewOrganizationId());
+            responses.add(OrgNewsListInfoResponse.builder()
+                    .createAt(orgNews.getCreateAt())
+                    .newAvatar(orgNews.getNewAvatar())
+                    .newId(orgNews.getNewId())
+                    .newTitle(orgNews.getNewTitle())
+                    .newViews(orgNews.getNewViews())
+                    .newOrganizationId(organization.getOrganId())
+                    .newOrganizationName(organization.getOrganName())
+                    .build());
+        });
+        return new Response<List<OrgNewsListInfoResponse>>(Boolean.TRUE, "查询成功", responses);
+
+    }
 }

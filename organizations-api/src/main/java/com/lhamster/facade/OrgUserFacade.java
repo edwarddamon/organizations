@@ -45,4 +45,10 @@ public interface OrgUserFacade {
 
     /*用户分页*/
     Response<List<OrgUserInfoResponse>> user(OrgUserRequest orgUserRequest);
+
+    /*社团用户分页*/
+    Response<List<OrgUserInfoResponse>> userList(OrgUserListRequest orgUserRequest);
+
+    /*用户分页*/
+    Response<List<OrgUserInfoResponse>> list(UserListRequest orgUserRequest);
 }

@@ -12,10 +12,12 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
 import org.springframework.util.StringUtils;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpSession;
+import javax.validation.Valid;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -36,10 +38,22 @@ public class OrgUserController {
     /*图片格式*/
     private static final List<String> suffix = new ArrayList<>(Arrays.asList(".jpg", ".jpeg", ".png", ".gif"));
 
-    @GetMapping("/user")
+    @PostMapping("/user")
     @ApiOperation(value = "用户分页")
     public Response<List<OrgUserInfoResponse>> user(@RequestBody OrgUserRequest orgUserRequest) {
         return userFacade.user(orgUserRequest);
+    }
+
+    @PostMapping("/userList")
+    @ApiOperation(value = "社团用户分页列表")
+    public Response<List<OrgUserInfoResponse>> userList(@Validated @RequestBody OrgUserListRequest orgUserRequest) {
+        return userFacade.userList(orgUserRequest);
+    }
+
+    @PostMapping("/users")
+    @ApiOperation(value = "用户分页列表")
+    public Response<List<OrgUserInfoResponse>> userList(@RequestBody UserListRequest orgUserRequest) {
+        return userFacade.list(orgUserRequest);
     }
 
     @PostMapping("/message")

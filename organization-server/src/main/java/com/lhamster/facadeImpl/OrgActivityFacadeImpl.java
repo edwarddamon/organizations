@@ -80,7 +80,6 @@ public class OrgActivityFacadeImpl implements OrgActivityFacade {
                         .reason("举办活动")
                         .build(), depMinisterId);
             }
-            Long funds = Objects.nonNull(orgCreateActivityRequest.getFunds()) ? orgCreateActivityRequest.getFunds() : 0L;
             // 创建活动
             orgActivityService.save(OrgActivity.builder()
                     .createAt(LocalDateTime.now())
@@ -92,10 +91,17 @@ public class OrgActivityFacadeImpl implements OrgActivityFacade {
                     .actName(orgCreateActivityRequest.getActivityName())
                     .actLimitUserId(orgCreateActivityRequest.getLimitId())
                     .actOrganizationId(orgCreateActivityRequest.getOrgId())
-                    .actFunds(funds)
+                    .actFunds(orgCreateActivityRequest.getFunds())
                     .actViews(0)
                     .build());
             return new Response(Boolean.TRUE, "创建活动成功");
+        } catch (ServerException e) {
+            // 回滚，删除该封面
+            if (StrUtil.isNotBlank(headPicUrl)) {
+                TencentCOSUtil.deletefile("organization-activityAvatar/" + headPicUrl.substring(headPicUrl.lastIndexOf("/") + 1));
+            }
+            e.printStackTrace();
+            throw new ServerException(Boolean.FALSE, e.getMsg());
         } catch (Exception e) {
             // 回滚，删除该封面
             if (StrUtil.isNotBlank(headPicUrl)) {
@@ -247,14 +253,39 @@ public class OrgActivityFacadeImpl implements OrgActivityFacade {
                 .actId(activity.getActId())
                 .actName(activity.getActName())
                 .actViews(activity.getActViews() + 1)
+                .actFunds(activity.getActFunds())
                 .createAt(activity.getCreateAt())
                 .actOrganizationId(organization.getOrganId())
                 .actOrganizationName(organization.getOrganName())
+                .actOrganizationAvatar(organization.getOrganAvatar())
                 .orgLimit(orgLimit)
                 .build();
         // 更新浏览量
         activity.setActViews(activity.getActViews() + 1);
         orgActivityService.updateById(activity);
         return new Response<>(Boolean.TRUE, "查询成功", response);
+    }
+
+    @Override
+    public Response<List<OrgActivityListInfoResponse>> list(Long orgId) {
+        List<OrgActivityListInfoResponse> responses = new ArrayList<>();
+        List<OrgActivity> activityList = orgActivityService.list(new QueryWrapper<OrgActivity>()
+                .eq("act_organization_id", orgId)
+                .orderByDesc("create_at"));
+        activityList.forEach(orgActivity -> {
+            // 获取社团名
+            OrgOrganization organization = orgOrganizationService.getById(orgActivity.getActOrganizationId());
+            responses.add(OrgActivityListInfoResponse.builder()
+                    .actAvatar(orgActivity.getActAvatar())
+                    .actId(orgActivity.getActId())
+                    .actName(orgActivity.getActName())
+                    .actViews(orgActivity.getActViews())
+                    .createAt(orgActivity.getCreateAt())
+                    .actOrganizationId(orgActivity.getActOrganizationId())
+                    .actOrganizationName(organization.getOrganName())
+                    .build());
+        });
+        return new Response<List<OrgActivityListInfoResponse>>(Boolean.TRUE, "查询成功", responses);
+
     }
 }

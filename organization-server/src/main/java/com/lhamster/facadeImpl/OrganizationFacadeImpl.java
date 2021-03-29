@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.pagehelper.PageHelper;
 import com.google.common.collect.Lists;
 import com.lhamster.entity.*;
+import com.lhamster.facade.OrgActivityFacade;
 import com.lhamster.facade.OrganizationFacade;
 import com.lhamster.request.*;
 import com.lhamster.response.*;
@@ -16,7 +17,6 @@ import com.lhamster.service.*;
 import com.lhamster.util.TencentCOSUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.catalina.Server;
 import org.apache.dubbo.config.annotation.Service;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Isolation;
@@ -29,6 +29,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author Damon_Edward
@@ -47,6 +48,9 @@ public class OrganizationFacadeImpl implements OrganizationFacade {
     private final OrgUserService orgUserService;
     private final OrgApplicationService orgApplicationService;
     private final OrgTransService orgTransService;
+    private final OrgNewsService orgNewsService;
+    private final OrgCommentsService orgCommentsService;
+    private final OrgActivityService orgActivityService;
 
     @Override
     public Response<String> updateAvatar(File localFile, String filename) {
@@ -132,6 +136,13 @@ public class OrganizationFacadeImpl implements OrganizationFacade {
             list.add(OrgDepartment.builder().depName("团支书").depOrganizationId(orgOrganization.getOrganId()).createAt(LocalDateTime.now()).build());
             list.add(OrgDepartment.builder().depName("财务").depOrganizationId(orgOrganization.getOrganId()).createAt(LocalDateTime.now()).build());
             orgDepartmentService.saveBatch(list);
+            // 自己和社团关联表建立联系
+            orgUserOrganizationRelService.save(OrgUserOrganizationRel.builder()
+                    .createAt(LocalDateTime.now())
+                    .relUserId(userId)
+                    .relOrganizationId(orgOrganization.getOrganId())
+                    .relRoleId(2L)
+                    .build());
             return new Response(Boolean.TRUE, "社团创建申请成功，请等待审核");
         } catch (Exception e) {
             throw new ServerException(Boolean.FALSE, "社团创建申请失败，[异常信息]：" + e.getMessage());
@@ -203,6 +214,27 @@ public class OrganizationFacadeImpl implements OrganizationFacade {
                 rels.forEach(rel -> {
                     orgUserOrganizationRelService.removeById(rel.getRelId());
                 });
+
+                // 查找出所有新闻
+                List<OrgNews> orgNews = orgNewsService.list(new QueryWrapper<OrgNews>()
+                        .eq("new_organization_id", checkOrganizationRequest.getId()));
+                orgNews.forEach(n -> {
+                    // 删除社团发布的新闻及评论
+                    List<Long> idList = orgCommentsService.list(new QueryWrapper<OrgComments>()
+                            .eq("com_news_id", n.getNewId()))
+                            .stream().map(OrgComments::getComId).collect(Collectors.toList());
+                    orgCommentsService.removeByIds(idList);
+                    // 删除新闻
+                    orgNewsService.removeById(n.getNewId());
+                });
+
+
+                // 删除社团创建的活动
+                List<Long> actIdList = orgActivityService.list(new QueryWrapper<OrgActivity>()
+                        .eq("act_organization_id", checkOrganizationRequest.getId()))
+                        .stream().map(OrgActivity::getActId).collect(Collectors.toList());
+                actIdList.forEach(orgActivityService::removeById);
+
             } else if (checkOrganizationRequest.getResult().equals(1)) {
                 // 拒绝 -> 社团状态改为normal
                 organization.setOrganStatus("normal");
@@ -308,14 +340,18 @@ public class OrganizationFacadeImpl implements OrganizationFacade {
         List<OrgOrganizationListInfoResponse> resList = new ArrayList<>();
         records.forEach(record -> {
             // 查询社长id，并找到对应社长名称
-            String username = orgUserService.getById(orgDepartmentService.getOne(new QueryWrapper<OrgDepartment>()
-                    .eq("dep_organization_id", record.getOrganId())
-                    .eq("dep_name", "社长")).getDepMinisterId()).getUserUsername();
+            String username = null;
+            if (!organizationPageRequest.getStatus().equals("cancelled")) {
+                username = orgUserService.getById(orgDepartmentService.getOne(new QueryWrapper<OrgDepartment>()
+                        .eq("dep_organization_id", record.getOrganId())
+                        .eq("dep_name", "社长")).getDepMinisterId()).getUserUsername();
+            }
             resList.add(OrgOrganizationListInfoResponse.builder()
                     .organAvatar(record.getOrganAvatar())
                     .organId(record.getOrganId())
                     .organIntroduction(record.getOrganIntroduction())
                     .organName(record.getOrganName())
+                    .organStar(record.getOrganStar())
                     .orgMinisterName(username)
                     .build());
         });
@@ -329,7 +365,8 @@ public class OrganizationFacadeImpl implements OrganizationFacade {
     }
 
     @Override
-    public Response<OrgOrganizationInfoResponse> myOrganizationDetail(Long orgId) {
+    public Response<OrgOrganizationInfoResponse> myOrganizationDetail(Long orgId, Long userId) {
+        Integer myJob = 0;
         // 查询社团信息
         OrgOrganization organization = orgOrganizationService.getById(orgId);
         // 社团图片转集合
@@ -351,6 +388,53 @@ public class OrganizationFacadeImpl implements OrganizationFacade {
         OrgUserInfoResponse vice2 = orgDepartmentService.getUserInfo(orgId, "副社长", false);
         // 团支书
         OrgUserInfoResponse secretary = orgDepartmentService.getUserInfo(orgId, "团支书", true);
+        // 检查当前用户和社团的关系
+        Integer status = 0;
+        int count = orgUserOrganizationRelService.count(new QueryWrapper<OrgUserOrganizationRel>()
+                .eq("rel_organization_id", orgId)
+                .eq("rel_role_id", 2L)
+                .eq("rel_user_id", userId));
+        if (count > 0) {
+            status = 1;
+        }
+        int count1 = orgApplicationService.count(new QueryWrapper<OrgApplication>()
+                .eq("app_status", "undetermined")
+                .eq("app_org_id", orgId)
+                .eq("app_user_id", userId));
+        if (count1 > 0) {
+            status = 2;
+        }
+        // 检查当前用户是否为社长、副社和团支书
+        int c = orgDepartmentService.count(new QueryWrapper<OrgDepartment>()
+                .eq("dep_organization_id", orgId)
+                .and(req ->
+                        req.eq("dep_minister_id", userId)
+                                .or()
+                                .eq("dep_vice_minister_id", userId)
+                )
+                .in("dep_name", "社长", "副社长", "团支书"));
+        Boolean identity = Boolean.FALSE;
+        if (c > 0) {
+            identity = Boolean.TRUE;
+            myJob = 2;
+        }
+
+        // 检查当前用户角色
+        int c2 = orgDepartmentService.count(new QueryWrapper<OrgDepartment>()
+                .eq("dep_organization_id", orgId)
+                .eq("dep_minister_id", userId)
+                .eq("dep_name", "财务"));
+        if (c2 > 0) {
+            myJob = 1;
+        }
+        int c3 = orgDepartmentService.count(new QueryWrapper<OrgDepartment>()
+                .eq("dep_organization_id", orgId)
+                .eq("dep_minister_id", userId)
+                .eq("dep_name", "社长"));
+        if (c3 > 0) {
+            myJob = 3;
+        }
+
         // 组装透出
         return new Response<>(Boolean.TRUE, "查询成功", OrgOrganizationInfoResponse.builder()
                 .organAvatar(organization.getOrganAvatar())
@@ -359,10 +443,14 @@ public class OrganizationFacadeImpl implements OrganizationFacade {
                 .organIntroductionDetail(organization.getOrganIntroductionDetail())
                 .organName(organization.getOrganName())
                 .organStar(organization.getOrganStar())
+                .cancelReason(organization.getOrganCancelReason())
                 .organIntroductionDetailAvatars(pictureList)
                 .minister(ministerInfo)
                 .secretary(secretary)
-                .viceMinisters(Lists.newArrayList(vice1, vice1))
+                .viceMinisters(Lists.newArrayList(vice1, vice2))
+                .status(status)
+                .identity(identity)
+                .myJob(myJob)
                 .build());
     }
 

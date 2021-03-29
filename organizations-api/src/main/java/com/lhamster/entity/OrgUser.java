@@ -62,6 +62,11 @@ public class OrgUser implements Serializable {
      */
     private String userVx;
 
+    /**
+     * 用户状态
+     */
+    private String userStatus;
+
     private LocalDateTime createAt;
 
     private String createBy;

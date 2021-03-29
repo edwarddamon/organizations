@@ -68,4 +68,24 @@ public class OrgOrganizationInfoResponse implements Serializable {
      * 团支书
      */
     private OrgUserInfoResponse secretary;
+
+    /**
+     * 当前用户和该社团的关系（1：已加入，2：已申请）
+     */
+    private Integer status;
+
+    /**
+     * 当前用户是否是该社团的社长、副社或团支书
+     */
+    private Boolean identity;
+
+    /**
+     * 当前用户身份 0:社员；1:财务；2:副社或团支书：3:社长;
+     */
+    private Integer myJob;
+
+    /**
+     * 社团申请注销理由
+     */
+    private String cancelReason;
 }

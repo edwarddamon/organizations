@@ -31,6 +31,11 @@ public class OrgOrganizationListInfoResponse implements Serializable {
     private String organName;
 
     /**
+     * 社团星级
+     */
+    private Integer organStar;
+
+    /**
      * 社团简介
      */
     private String organIntroduction;

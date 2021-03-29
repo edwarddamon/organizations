@@ -9,7 +9,9 @@ import com.lhamster.mapper.OrgDepartmentMapper;
 import com.lhamster.mapper.OrgUserMapper;
 import com.lhamster.mapper.OrgUserOrganizationRelMapper;
 import com.lhamster.request.MyOrganizationPageRequest;
+import com.lhamster.request.OrgUserListRequest;
 import com.lhamster.response.OrgOrganizationListInfoResponse;
+import com.lhamster.response.OrgUserInfoResponse;
 import com.lhamster.response.result.Response;
 import com.lhamster.service.OrgUserOrganizationRelService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -45,5 +47,10 @@ public class OrgUserOrganizationRelServiceImpl extends ServiceImpl<OrgUserOrgani
             res.setOrgMinisterName(username);
         });
         return new Response<List<OrgOrganizationListInfoResponse>>(Boolean.TRUE, "查询成功", (int) page.getTotal(), orgUserOrganizationRelList);
+    }
+
+    @Override
+    public List<OrgUserInfoResponse> listMyself(OrgUserListRequest orgUserRequest) {
+        return orgUserOrganizationRelMapper.listMyself(orgUserRequest);
     }
 }

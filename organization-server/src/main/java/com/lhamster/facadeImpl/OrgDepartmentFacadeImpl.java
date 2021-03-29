@@ -107,16 +107,13 @@ public class OrgDepartmentFacadeImpl implements OrgDepartmentFacade {
 
     @Override
     public Response<List<OrgDepartment>> departs(Long orgId, Long userId) {
-        this.checkIdentity2(orgId, userId);
         // 获取部门列表
         return new Response<List<OrgDepartment>>(Boolean.TRUE, "获取部门列表成功",
-                orgDepartmentService.list(new QueryWrapper<OrgDepartment>().eq("dep_organization_id", userId)));
+                orgDepartmentService.list(new QueryWrapper<OrgDepartment>().eq("dep_organization_id", orgId)));
     }
 
     @Override
     public Response<DepartmentInfoResponse> departDetail(Long orgId, Long depId, Long userId) {
-        // 检验身份
-        checkIdentity2(orgId, userId);
         // 获取部门信息
         OrgDepartment department = orgDepartmentService.getById(depId);
         // 获取部长和副部长信息

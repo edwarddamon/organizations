@@ -12,5 +12,6 @@
         from `org_user`
         where `user_phone` = #{phone}
           and `user_password` = #{password}
+          and `user_status` = 'NORMAL'
     </select>
 </mapper>

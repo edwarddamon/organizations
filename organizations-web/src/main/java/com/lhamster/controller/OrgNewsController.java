@@ -54,6 +54,15 @@ public class OrgNewsController {
         return newsFacade.page(orgNewsPageRequest);
     }
 
+    @GetMapping("/list/{orgId}")
+    @ApiOperation(value = "新闻列表")
+    public Response<List<OrgNewsListInfoResponse>> orgPage(@PathVariable("orgId") Long orgId) {
+        if (log.isDebugEnabled()) {
+            log.debug("[入参]：{}", orgId);
+        }
+        return newsFacade.list(orgId);
+    }
+
     @PostMapping("/create")
     @ApiOperation(value = "发布新闻")
     public Response create(@RequestParam(value = "avatar", required = false) MultipartFile avatar,
@@ -117,7 +126,7 @@ public class OrgNewsController {
         return newsFacade.comment(orgCommentRequest, JwtTokenUtil.getUserId(token));
     }
 
-    @PatchMapping("/comment/{comId}/{status}")
+    @PutMapping("/comment/{comId}/{status}")
     @ApiOperation(value = "用户点赞评论", notes = "comId传评论id，status传点赞和取消点赞（true点赞;false取消点赞）")
     public Response comment(@PathVariable("comId") Long comId,
                             @PathVariable("status") Boolean status) {

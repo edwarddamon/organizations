@@ -37,6 +37,10 @@ public class OrgMessageFacadeImpl implements OrgMessageFacade {
                 .eq("mes_target_id", userId)
                 .ne("mes_status", "DELETED")
                 .orderByDesc("create_at"));
+        // 查询出未读个数
+        int count1 = orgMessageService.count(new QueryWrapper<OrgMessage>()
+                .eq("mes_target_id", userId)
+                .eq("mes_status", "UNREAD"));
         List<OrgMessageInfoResponse> messageInfoResponseList = new ArrayList<>();
         messageList.forEach(msg -> {
             messageInfoResponseList.add(OrgMessageInfoResponse.builder()
@@ -46,7 +50,7 @@ public class OrgMessageFacadeImpl implements OrgMessageFacade {
                     .mesStatus(msg.getMesStatus())
                     .build());
         });
-        return new Response<>(Boolean.TRUE, "查询成功", messageInfoResponseList);
+        return new Response<>(Boolean.TRUE, "查询成功", count1, messageInfoResponseList);
     }
 
     @Override
