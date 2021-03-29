@@ -33,4 +33,7 @@ public interface OrgActivityFacade {
 
     /*活动详情*/
     Response<OrgActivityInfoResponse> detail(Long actId);
+
+    /*指定社团的活动列表*/
+    Response<List<OrgActivityListInfoResponse>> list(Long orgId);
 }

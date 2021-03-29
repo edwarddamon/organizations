@@ -51,7 +51,7 @@ public interface OrganizationFacade {
     Response<List<OrgOrganizationListInfoResponse>> myPage(MyOrganizationPageRequest myOrganizationPageRequest, Long userId);
 
     /*社团详情*/
-    Response<OrgOrganizationInfoResponse> myOrganizationDetail(Long orgId);
+    Response<OrgOrganizationInfoResponse> myOrganizationDetail(Long orgId, Long userId);
 
     /*申请入社*/
     Response apply(OrgApplicationRequest orgApplicationRequest, Long userId);

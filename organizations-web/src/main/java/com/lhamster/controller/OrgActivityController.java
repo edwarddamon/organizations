@@ -54,6 +54,13 @@ public class OrgActivityController {
         return orgActivityFacade.page(pageNo, pageSize, name);
     }
 
+    @GetMapping("/list/{orgId}")
+    @ApiOperation(value = "活动列表")
+    public Response<List<OrgActivityListInfoResponse>> activityList(@PathVariable("orgId") Long orgId) {
+        return orgActivityFacade.list(orgId);
+    }
+
+
     @GetMapping("/detail/{actId}")
     @ApiOperation(value = "活动详情")
     public Response<OrgActivityInfoResponse> activity(@PathVariable(value = "actId") Long actId) {

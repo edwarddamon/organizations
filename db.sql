@@ -365,3 +365,6 @@ ALTER TABLE `organizations`.`org_activity`
 
 ALTER TABLE `organizations`.`org_activity`
     ADD COLUMN `act_funds` bigint(20) NULL COMMENT '需要的经费' AFTER `act_limit_user_id`;
+
+ALTER TABLE `organizations`.`org_user`
+    ADD COLUMN `user_status` varchar(255) NULL COMMENT '用户状态（NORMAL正常，CANCEL已注销）' AFTER `user_vx`;

@@ -58,6 +58,11 @@ public class OrgActivityInfoResponse implements Serializable {
     private Integer actViews;
 
     /**
+     * 经费
+     */
+    private Long actFunds;
+
+    /**
      * 社团id
      */
     private Long actOrganizationId;
@@ -66,6 +71,11 @@ public class OrgActivityInfoResponse implements Serializable {
      * 社团名
      */
     private String actOrganizationName;
+
+    /**
+     * 社团封面地址
+     */
+    private String actOrganizationAvatar;
 
     /**
      * 人员限制id

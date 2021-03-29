@@ -2,7 +2,9 @@ package com.lhamster.mapper;
 
 import com.lhamster.entity.OrgUserOrganizationRel;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.lhamster.request.OrgUserListRequest;
 import com.lhamster.response.OrgOrganizationListInfoResponse;
+import com.lhamster.response.OrgUserInfoResponse;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -18,4 +20,6 @@ import java.util.List;
 public interface OrgUserOrganizationRelMapper extends BaseMapper<OrgUserOrganizationRel> {
 
     List<OrgOrganizationListInfoResponse> getMyOrganizations(@Param("name") String name, @Param("userId") Long userId);
+
+    List<OrgUserInfoResponse> listMyself(OrgUserListRequest orgUserRequest);
 }

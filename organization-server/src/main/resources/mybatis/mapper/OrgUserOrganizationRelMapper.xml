@@ -12,7 +12,23 @@
             <if test="name != null">
                 AND organ_name LIKE concat('%',#{name},'%')
             </if>
+            AND organ_status = 'normal'
         </where>
-        order by `create_at` desc
+        order by org_organization.`create_at` desc
+    </select>
+    <select id="listMyself" resultType="com.lhamster.response.OrgUserInfoResponse">
+        SELECT u.user_id,u.user_avatar,u.user_username,u.user_sex,u.user_phone,u.user_qq,u.user_vx,d.dep_name
+        FROM `org_user_organization_rel`
+        INNER JOIN `org_user` as u
+        ON rel_user_id = user_id
+        LEFT JOIN `org_department` as d
+        ON rel_organization_id = dep_organization_id AND rel_user_id IN(dep_minister_id,dep_vice_minister_id)
+        <where>
+            rel_organization_id = #{orgId}
+            <if test="username != null and username != ''">
+                AND user_username like concat('%',#{username},'%')
+            </if>
+        </where>
+        ORDER BY dep_id is NULL,dep_id asc
     </select>
 </mapper>

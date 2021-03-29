@@ -55,8 +55,9 @@ public class OrgOrganizationsController {
 
     @GetMapping("/orgDetail/{orgId}")
     @ApiOperation(value = "社团信息详情")
-    public Response<OrgOrganizationInfoResponse> orgDetail(@PathVariable("orgId") Long orgId) {
-        return organizationFacade.myOrganizationDetail(orgId);
+    public Response<OrgOrganizationInfoResponse> orgDetail(@PathVariable("orgId") Long orgId,
+                                                           @RequestHeader(JwtTokenUtil.AUTH_HEADER_KEY) String token) {
+        return organizationFacade.myOrganizationDetail(orgId, JwtTokenUtil.getUserId(token));
     }
 
     @PostMapping("/create")
@@ -189,7 +190,7 @@ public class OrgOrganizationsController {
 
     @GetMapping(value = {"/appList/{orgId}", "/appList"})
     @ApiOperation(value = "入社申请列表",
-            notes = "传社团id：查询社团待审批的申请；不传社团id：查询当前登录用户的所有审批")
+            notes = "传社团id：查询社团待审批的申请；不传社团id：查询当前登录用户的所有申请记录")
     public Response<List<OrgApplicationListInfoResponse>> applyList(@PathVariable(value = "orgId", required = false) Long orgId,
                                                                     @RequestHeader(JwtTokenUtil.AUTH_HEADER_KEY) String token) {
         return organizationFacade.applyList(orgId, JwtTokenUtil.getUserId(token));

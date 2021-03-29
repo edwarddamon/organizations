@@ -28,7 +28,7 @@ import java.util.List;
 public class OrgRoleFacadeImpl implements OrgRoleFacade {
     private final OrgUserRoleRelService orgUserRoleRelService;
 
-    private void checkRole(Long userId, Long... params) {
+    public void checkRole(Long userId, Long... params) {
         // 检查是否为社联主席或社联管理员
         int count2 = orgUserRoleRelService.count(new QueryWrapper<OrgUserRoleRel>()
                 .eq("rel_user_id", userId)
