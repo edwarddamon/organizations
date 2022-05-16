@@ -24,7 +24,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://www.lhamster.cn:3306/organizations?serverTimezone=GMT%2B8
     username: root
-    password: CjB10315114
+    password: 131420
     #设置为druid数据源
     type: com.alibaba.druid.pool.DruidDataSource
 
