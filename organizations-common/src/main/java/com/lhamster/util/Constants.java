@@ -1,7 +1,9 @@
 package com.lhamster.util;
 
 /**
- * 腾讯云常量类
+ * 腾讯云常量类（这个类涉及到的相关东西都是腾讯云上的，
+ * 修改成你们自己的就好
+ * 默认的无法使用了。
  */
 public class Constants {
     /**
